@@ -29,18 +29,23 @@ def getdata():
 
 
     # TODO: Make this work with the rest of the code!
+
+    # TODO: Check the format of the spec table as Phill made it, then try to model
+    # the data in the same way.
     hecto_dir = os.path.expanduser("/data/labs/douglaslab/sofairj/data/hecto_spectra")
     hecto_filename = os.path.join(hecto_dir,"data_ngc6811_2019.0516_hectochelle_NGC6811_2019b_1.8149.h5")
     f = h5py.File(hecto_filename, 'r')
+    
     # target is a GAIA ID, likely still as an int
 
-    # Running with GAIA ID 2080061393129929088
+    # 2080061393129929088 is the first star listed in 
+    # data_ngc6811_2019.0516_hectochelle_NGC6811_2019b_1.8149.h5
     target = str(2080061393129929088)
     wav = f[target]["wave"] * u.AA
-    flu = f[target]["flux"]*u.Jy
+    flu = f[target]["flux"] * u.Jy
     err = StdDevUncertainty(f[target]["eflux"]*u.Jy)
     spec = Spectrum1D(spectral_axis=wav, flux=flu, uncertainty=err)
-    
+
 
 
 
@@ -51,7 +56,7 @@ def getdata():
     spec['err'] = spec['err'] / medflux
     
     # read in phot
-    phottab = Table.read('data/demophot_18Sco.fits',format='fits')
+    phottab = Table.read('data/demophot_18Sco.fits', format='fits')
     # filtarr = list(phottab['band'])
     filtarr = ['GaiaDR3_G','GaiaDR3_BP','GaiaDR3_RP','2MASS_J','2MASS_H','2MASS_Ks','WISE_W1','WISE_W2']
     phot = {}
