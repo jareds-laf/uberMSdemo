@@ -25,29 +25,28 @@ def getdata():
     
     # spec['wave'] = airtovacuum(spec['wave'])
 
-
-
-
-    # TODO: Make this work with the rest of the code!
-
-    # TODO: Check the format of the spec table as Phill made it, then try to model
-    # the data in the same way.
+    # Read in spectrum
     hecto_dir = os.path.expanduser("/data/labs/douglaslab/sofairj/data/hecto_spectra")
     hecto_filename = os.path.join(hecto_dir,"data_ngc6811_2019.0516_hectochelle_NGC6811_2019b_1.8149.h5")
     f = h5py.File(hecto_filename, 'r')
-    
-    # target is a GAIA ID, likely still as an int
 
-    # 2080061393129929088 is the first star listed in 
-    # data_ngc6811_2019.0516_hectochelle_NGC6811_2019b_1.8149.h5
+
+    # TODO: Make sure this works!
+    # 2080061393129929088 is the first star listed in the spectrum used here
+    # (data_ngc6811_2019.0516_hectochelle_NGC6811_2019b_1.8149.h5)
     target = str(2080061393129929088)
-    wav = f[target]["wave"] * u.AA
-    flu = f[target]["flux"] * u.Jy
-    err = StdDevUncertainty(f[target]["eflux"]*u.Jy)
-    spec = Spectrum1D(spectral_axis=wav, flux=flu, uncertainty=err)
+    spec = Table([f[target]['wave'], f[target]['flux'], f[target]['eflux']], names=('wave', 'flux', 'err'))
+    # Not filtering to wavelength \in  (5150, 5300) because the data is already in that range
 
+    # This is how Professor Douglas recommended reading it in, but
+    # I did it the other way (with Astropy table) because that's how
+    # Phill did it with the demo data:
 
-
+    # target = str(2080061393129929088)
+    # wav = f[target]["wave"] * u.AA
+    # flu = f[target]["flux"] * u.Jy
+    # err = StdDevUncertainty(f[target]["eflux"]*u.Jy)
+    # spec = Spectrum1D(spectral_axis=wav, flux=flu, uncertainty=err)
 
 
     # normalize the spectrum (and error) by the median
