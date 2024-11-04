@@ -352,6 +352,9 @@ if __name__ == '__main__':
     parser.add_argument('--nophot', '-np', dest='dophot', action='store_false')
     parser.set_defaults(dophot=True)
 
+    # Command for running one of our spectra with no photometry
+    # python runhecto.py -t UTP -pb -ds -np -o hecto_ds_np.fits
+
     args = parser.parse_args()
 
     if args.runtype == 'UTP':
