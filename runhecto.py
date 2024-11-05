@@ -31,7 +31,6 @@ def getdata():
     f = h5py.File(hecto_filename, 'r')
 
 
-    # TODO: Make sure this works!
     # 2080061393129929088 is the first star listed in the spectrum used here
     # (data_ngc6811_2019.0516_hectochelle_NGC6811_2019b_1.8149.h5)
     target = str(2080061393129929088)
@@ -57,10 +56,10 @@ def getdata():
     # read in phot
     phottab = Table.read('data/demophot_18Sco.fits', format='fits')
     # filtarr = list(phottab['band'])
-    filtarr = ['GaiaDR3_G','GaiaDR3_BP','GaiaDR3_RP','2MASS_J','2MASS_H','2MASS_Ks','WISE_W1','WISE_W2']
-    phot = {}
-    for ii,pb in enumerate(filtarr):
-        phot[pb] = [float(phottab['mag'][ii]),float(phottab['err'][ii])]
+    # filtarr = ['GaiaDR3_G','GaiaDR3_BP','GaiaDR3_RP','2MASS_J','2MASS_H','2MASS_Ks','WISE_W1','WISE_W2']
+    phot = f[target]['phot']
+    # for ii,pb in enumerate(filtarr):
+    #     phot[pb] = [float(phottab['mag'][ii]),float(phottab['err'][ii])]
     
     # store a priori stellar parameters [from GBS website]
     out['Teff']   = 5810.0
@@ -352,7 +351,7 @@ if __name__ == '__main__':
     parser.add_argument('--nophot', '-np', dest='dophot', action='store_false')
     parser.set_defaults(dophot=True)
 
-    # Command for running one of our spectra with no photometry
+    # Command for running one of our spectra with no photometry:
     # python runhecto.py -t UTP -pb -ds -np -o hecto_ds_np.fits
 
     args = parser.parse_args()
