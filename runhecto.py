@@ -34,8 +34,11 @@ def getdata():
     # 2080061393129929088 is the first star listed in the spectrum used here
     # (data_ngc6811_2019.0516_hectochelle_NGC6811_2019b_1.8149.h5)
     target = str(2080061393129929088)
-    spec = Table([f[target]['wave'], f[target]['flux'], f[target]['eflux']], names=('wave', 'flux', 'err'))
-    # Not filtering to wavelength \in  (5150, 5300) because the data is already in that range
+    spec = Table([f[target]['wave'], f[target]['flux'], \
+                  f[target]['eflux']], \
+                 names=('wave', 'flux', 'err'))
+    # Not filtering to wavelength \in  (5150, 5300)
+    # because the data is already in that range
 
     # This is how Professor Douglas recommended reading it in, but
     # I did it the other way (with Astropy table) because that's how
@@ -54,12 +57,15 @@ def getdata():
     spec['err'] = spec['err'] / medflux
     
     # read in phot
-    phottab = Table.read('data/demophot_18Sco.fits', format='fits')
+    phottab = Table.read(hecto_filename, format='fits')
     # filtarr = list(phottab['band'])
-    # filtarr = ['GaiaDR3_G','GaiaDR3_BP','GaiaDR3_RP','2MASS_J','2MASS_H','2MASS_Ks','WISE_W1','WISE_W2']
-    phot = f[target]['phot']
-    # for ii,pb in enumerate(filtarr):
-    #     phot[pb] = [float(phottab['mag'][ii]),float(phottab['err'][ii])]
+    filtarr = [key for key in f[target]['phot'].keys()]
+
+    phot = {}
+    # Create a dict with {filter name: [flux magnitude, flux error]}
+    for i, filter in enumerate(filtarr):
+        phot[filter] = [float(phottab[filter][0]),float(phottab[filter][1])]
+    print(phot)
     
     # store a priori stellar parameters [from GBS website]
     out['Teff']   = 5810.0
