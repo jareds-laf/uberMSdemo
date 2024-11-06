@@ -62,11 +62,14 @@ def getdata():
 
     # Get the filters
     filtarr = phottab.keys()
-    
+
     phot = {}
     # Create a dict with {filter name: [flux magnitude, flux error]}
     for i, filter in enumerate(filtarr):
-        phot[filter] = [float(phottab[filter][0]),float(phottab[filter][1])]
+        if filter != 'PS_y':
+            phot[filter] = [float(phottab[filter][0]),float(phottab[filter][1])]
+        else:
+            print('Skipping {filter} filter')
 
     # store a priori stellar parameters [from GBS website]
     out['Teff']   = 5810.0
