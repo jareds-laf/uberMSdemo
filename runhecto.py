@@ -68,6 +68,13 @@ def getdata():
     for i, filter in enumerate(filtarr):
         if filter != 'PS_y':
             phot[filter] = [float(phottab[filter][0]),float(phottab[filter][1])]
+            
+            if filter == 'GaiaEDR3_BP':
+                phot['GaiaDR3_BP'] = [float(phottab[filter][0]),float(phottab[filter][1])]
+            elif filter == 'GaiaEDR3_G':
+                phot['GaiaDR3_G'] = [float(phottab[filter][0]),float(phottab[filter][1])]
+            elif filter == 'GaiaEDR3_RP':
+                phot['GaiaDR3_RP'] = [float(phottab[filter][0]),float(phottab[filter][1])]
         else:
             print('Skipping {filter} filter')
 
