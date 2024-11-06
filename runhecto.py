@@ -57,16 +57,17 @@ def getdata():
     spec['err'] = spec['err'] / medflux
     
     # read in phot
-    phottab = Table.read(hecto_filename, format='fits')
-    # filtarr = list(phottab['band'])
-    filtarr = [key for key in f[target]['phot'].keys()]
+    # Create table with photometry for every filter
+    phottab = f[target]['phot']
 
+    # Get the filters
+    filtarr = phottab.keys()
+    
     phot = {}
     # Create a dict with {filter name: [flux magnitude, flux error]}
     for i, filter in enumerate(filtarr):
         phot[filter] = [float(phottab[filter][0]),float(phottab[filter][1])]
-    print(phot)
-    
+
     # store a priori stellar parameters [from GBS website]
     out['Teff']   = 5810.0
     out['log(g)'] = 4.44
@@ -357,13 +358,9 @@ if __name__ == '__main__':
     parser.add_argument('--nophot', '-np', dest='dophot', action='store_false')
     parser.set_defaults(dophot=True)
 
-    # Command for running one of our spectra with no photometry:
-    # python runhecto.py -t UTP -pb -ds -np -o hecto_ds_np.fits
-
     args = parser.parse_args()
 
     if args.runtype == 'UTP':
         runTPdemo(**vars(args))
     if args.runtype == 'UMS':
         runMSdemo(**vars(args))
-
