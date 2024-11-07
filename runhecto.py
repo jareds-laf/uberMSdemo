@@ -66,17 +66,20 @@ def getdata():
     phot = {}
     # Create a dict with {filter name: [flux magnitude, flux error]}
     for i, filter in enumerate(filtarr):
+
+        # Skip the PS_y filter because the NN is not trained on it
         if filter != 'PS_y':
             phot[filter] = [float(phottab[filter][0]),float(phottab[filter][1])]
-            
-            if filter == 'GaiaEDR3_BP':
-                phot['GaiaDR3_BP'] = [float(phottab[filter][0]),float(phottab[filter][1])]
-            elif filter == 'GaiaEDR3_G':
-                phot['GaiaDR3_G'] = [float(phottab[filter][0]),float(phottab[filter][1])]
-            elif filter == 'GaiaEDR3_RP':
-                phot['GaiaDR3_RP'] = [float(phottab[filter][0]),float(phottab[filter][1])]
         else:
             print('Skipping {filter} filter')
+
+    # Need to change the names of the
+    phot['GaiaDR3_BP'] = phot.pop('GaiaEDR3_BP')
+    phot['GaiaDR3_RP'] = phot.pop('GaiaEDR3_RP')
+    phot['GaiaDR3_G'] = phot.pop('GaiaEDR3_G')
+
+    # Update the filtarr list to not include any confusing filters
+    filtarr = list(phot.keys())
 
     # store a priori stellar parameters [from GBS website]
     out['Teff']   = 5810.0
