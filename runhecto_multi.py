@@ -64,6 +64,12 @@ def getdata():
         else:
             print('Skipping {filter} filter')
 
+    # Need to change the names of the Gaia EDR3 filters to DR3
+    # These filters are unchanged between EDR3 and DR3
+    phot['GaiaDR3_BP'] = phot.pop('GaiaEDR3_BP')
+    phot['GaiaDR3_RP'] = phot.pop('GaiaEDR3_RP')
+    phot['GaiaDR3_G'] = phot.pop('GaiaEDR3_G')
+
     # store a priori stellar parameters [from GBS website]
     out['Teff']   = 5414.0
     out['log(g)'] = 4.49
