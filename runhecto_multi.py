@@ -6,6 +6,7 @@ from Payne.jax.fitutils import airtovacuum
 import os
 import h5py
 import glob
+import logging
 
 specNN_rv31 = './models/specNN/modV0_spec_LinNet_R42K_WL510_535_wvt.h5'
 photNN = './models/photNN/'
@@ -105,8 +106,12 @@ def getdata():
     return out
 
 def runTPdemo(dospec=True,dophot=True,outputname=None,progressbar=True,**kwargs):
+    logger = logging.getLogger(__name__)
+    logging.basicConfig(filename='{outputname}.log', encoding='utf-8', 
+                        level=logging.DEBUG, format='%(asctime)s :: %(message)s', 
+                        datefmt='%Y/%m/%d %I:%M:%S %p')
     if (dospec == False) & (dophot==False):
-        print('User did not set either dospec and/or dophot, returning nothing')
+        logger.critical('User did not set either dospec and/or dophot, returning nothing')
         return 
 
     # grab data
@@ -134,24 +139,24 @@ def runTPdemo(dospec=True,dophot=True,outputname=None,progressbar=True,**kwargs)
     nspec = len(indict['data']['spec'])
     specNN = [specNN_rv31,specNN_rv31,specNN_rv31]
 
-    print('---- Input Data ----')
+    logging.info('---- Input Data ----')
     if 'phot' in indict['data'].keys():
-        print('Phot:')
+        logging.info('Phot:')
         for kk in indict['data']['phot'].keys():
-            print('      {0} = {1:f} +/- {2:f}'.format(kk,*indict['data']['phot'][kk]))
+            logging.info('      {0} = {1:f} +/- {2:f}'.format(kk,*indict['data']['phot'][kk]))
     if 'spec' in indict['data'].keys():
         for ii in range(nspec):
-            print('... For Demo Spec: {0} ...'.format(ii))
+            logging.info('... For Demo Spec: {0} ...'.format(ii))
             spec_i = indict['data']['spec'][ii]
-            print('number of pixels: {0}'.format(len(spec_i['obs_wave'])))
-            print('min/max wavelengths: {0} -- {1}'.format(spec_i['obs_wave'].min(),spec_i['obs_wave'].max()))
-            print('median flux: {0}'.format(np.median(spec_i['obs_flux'])))
-            print('median flux error: {0}'.format(np.median(spec_i['obs_eflux'])))
-            print('SNR: {0}'.format(np.median(spec_i['obs_flux']/spec_i['obs_eflux'])))
-            print('      Npixels = {0}'.format(len(spec_i['obs_wave'])))
+            logging.info('number of pixels: {0}'.format(len(spec_i['obs_wave'])))
+            logging.info('min/max wavelengths: {0} -- {1}'.format(spec_i['obs_wave'].min(),spec_i['obs_wave'].max()))
+            logging.info('median flux: {0}'.format(np.median(spec_i['obs_flux'])))
+            logging.info('median flux error: {0}'.format(np.median(spec_i['obs_eflux'])))
+            logging.info('SNR: {0}'.format(np.median(spec_i['obs_flux']/spec_i['obs_eflux'])))
+            logging.info('      Npixels = {0}'.format(len(spec_i['obs_wave'])))
     if 'parallax' in indict['data'].keys():
-        print('Parallax:')
-        print('      parallax = {0} +/- {1}'.format(*indict['data']['parallax']))
+        logging.info('Parallax:')
+        logging.info('      parallax = {0} +/- {1}'.format(*indict['data']['parallax']))
 
     # set some initial guesses at parameters
     
@@ -186,9 +191,9 @@ def runTPdemo(dospec=True,dophot=True,outputname=None,progressbar=True,**kwargs)
 
     indict['initpars'] = initpars
 
-    print('------ Init Parameters ---')
+    logging.info('------ Init Parameters ---')
     for kk in initpars.keys():
-        print('      {0} = {1}'.format(kk,initpars[kk]))
+        logging.info('      {0} = {1}'.format(kk,initpars[kk]))
         
 
     # define priors
@@ -223,9 +228,9 @@ def runTPdemo(dospec=True,dophot=True,outputname=None,progressbar=True,**kwargs)
         # indict['priors'][f'specjitter_{ii}'] = ['fixed',0.0]
         indict['priors'][f'specjitter_{ii}'] = ['tnormal',[0.0,0.001,0.0,0.1]]
 
-    print('------ Priors -----')
+    logging.info('------ Priors -----')
     for kk in indict['priors'].keys():    
-        print('       {0}: {1}'.format(kk,indict['priors'][kk]))
+        logging.info('       {0}: {1}'.format(kk,indict['priors'][kk]))
 
     # define SVI parameters
     indict['svi'] = ({
@@ -236,13 +241,18 @@ def runTPdemo(dospec=True,dophot=True,outputname=None,progressbar=True,**kwargs)
         'post_resample':30000,
         })
 
-    print('... Running TP')
+    logging.info('... Running TP')
     SVI = runSVI.sviTP(specNN=specNN,photNN=photNN,verbose=True)
     SVI.run(indict)
 
 def runMSdemo(dospec=True,dophot=True,outputname=None,progressbar=True,**kwargs):
+    logger = logging.getLogger(__name__)
+    logging.basicConfig(filename='{outputname}.log', encoding='utf-8', 
+                        level=logging.DEBUG, format='%(asctime)s :: %(message)s', 
+                        datefmt='%Y/%m/%d %I:%M:%S %p')
+
     if (dospec == False) & (dophot==False):
-        print('User did not set either dospec and/or dophot, returning nothing')
+        logging.critical('User did not set either dospec and/or dophot, returning nothing')
         return 
 
     # grab data
@@ -271,24 +281,24 @@ def runMSdemo(dospec=True,dophot=True,outputname=None,progressbar=True,**kwargs)
     nspec = len(indict['data']['spec'])
     specNN = [specNN_rv31,specNN_rv31,specNN_rv31]
 
-    print('---- Input Data ----')
+    logging.info('---- Input Data ----')
     if 'phot' in indict['data'].keys():
-        print('Phot:')
+        logging.info('Phot:')
         for kk in indict['data']['phot'].keys():
-            print('      {0} = {1:f} +/- {2:f}'.format(kk,*indict['data']['phot'][kk]))
+            logging.info('      {0} = {1:f} +/- {2:f}'.format(kk,*indict['data']['phot'][kk]))
     if 'spec' in indict['data'].keys():
         for ii in range(nspec):
-            print('... For Demo Spec: {0} ...'.format(ii))
+            logging.info('... For Demo Spec: {0} ...'.format(ii))
             spec_i = indict['data']['spec'][ii]
-            print('number of pixels: {0}'.format(len(spec_i['obs_wave'])))
-            print('min/max wavelengths: {0} -- {1}'.format(spec_i['obs_wave'].min(),spec_i['obs_wave'].max()))
-            print('median flux: {0}'.format(np.median(spec_i['obs_flux'])))
-            print('median flux error: {0}'.format(np.median(spec_i['obs_eflux'])))
-            print('SNR: {0}'.format(np.median(spec_i['obs_flux']/spec_i['obs_eflux'])))
-            print('      Npixels = {0}'.format(len(spec_i['obs_wave'])))
+            logging.info('number of pixels: {0}'.format(len(spec_i['obs_wave'])))
+            logging.info('min/max wavelengths: {0} -- {1}'.format(spec_i['obs_wave'].min(),spec_i['obs_wave'].max()))
+            logging.info('median flux: {0}'.format(np.median(spec_i['obs_flux'])))
+            logging.info('median flux error: {0}'.format(np.median(spec_i['obs_eflux'])))
+            logging.info('SNR: {0}'.format(np.median(spec_i['obs_flux']/spec_i['obs_eflux'])))
+            logging.info('      Npixels = {0}'.format(len(spec_i['obs_wave'])))
     if 'parallax' in indict['data'].keys():
-        print('Parallax:')
-        print('      parallax = {0} +/- {1}'.format(*indict['data']['parallax']))
+        logging.info('Parallax:')
+        logging.info('      parallax = {0} +/- {1}'.format(*indict['data']['parallax']))
 
     # set some initial guesses at parameters
     initpars = ({
@@ -316,9 +326,9 @@ def runMSdemo(dospec=True,dophot=True,outputname=None,progressbar=True,**kwargs)
 
     indict['initpars'] = initpars
 
-    print('------ Init Parameters ---')
+    logging.info('------ Init Parameters ---')
     for kk in initpars.keys():
-        print('      {0} = {1}'.format(kk,initpars[kk]))
+        logging.info('      {0} = {1}'.format(kk,initpars[kk]))
     
     # define priors
     indict['priors'] = {}
@@ -355,9 +365,9 @@ def runMSdemo(dospec=True,dophot=True,outputname=None,progressbar=True,**kwargs)
         indict['priors'][f'specjitter_{ii}'] = ['tnormal',[0.0,0.001,0.0,0.1]]
 
 
-    print('------ Priors -----')
+    logging.info('------ Priors -----')
     for kk in indict['priors'].keys():    
-        print('       {0}: {1}'.format(kk,indict['priors'][kk]))
+        logging.info('       {0}: {1}'.format(kk,indict['priors'][kk]))
 
     # define SVI parameters
     indict['svi'] = ({
@@ -368,7 +378,7 @@ def runMSdemo(dospec=True,dophot=True,outputname=None,progressbar=True,**kwargs)
         'post_resample':30000,
         })
 
-    print('... Running MS')
+    logging.info('... Running MS')
     SVI = runSVI.sviMS(specNN=specNN,photNN=photNN,mistNN=mistNN,verbose=True,usegrad=False)
     SVI.run(indict)
 
