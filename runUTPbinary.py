@@ -176,11 +176,11 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
 
     # define SVI parameters
     indict['svi'] = ({
-        'steps':30000,
+        'steps':300,
         'opt_tol':1E-6,
         'start_tol':1E-2,
         'progress_bar':progressbar,
-        'post_resample':30000,
+        'post_resample':300,
         })
 
     print('... Running TP')
