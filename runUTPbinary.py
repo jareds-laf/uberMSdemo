@@ -103,7 +103,7 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         '[a/Fe]_b':0.0,
         'log(R)_a':0.0,
         'log(R)_b':0.0,
-        'q':0.5,
+        'mass_ratio':0.5,
         'vrad_sys':RVest,
         'vrad_a':-10.0,
         'vrad_b':10.0,
@@ -146,7 +146,7 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         #     indict['priors'][f'vrad_{kk}']  = ['uniform',[-50.0,50.0]]
 
     # q-vrad relationship
-    indict['priors'][f'q']  = ['uniform',[1e-5, 1.0]]
+    indict['priors'][f'mass_ratio']  = ['uniform',[1e-5, 1.0]]
     indict['priors'][f'vrad_sys']  = ['uniform',[RVest-100.0, RVest+100.0]]
     indict['priors'][f'vrad_a']  = ['uniform',[RVest-100.0, RVest+100.0]]
 
