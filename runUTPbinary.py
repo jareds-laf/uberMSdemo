@@ -114,7 +114,7 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         'dist':distest,
         'Av':Avest,
         'specjitter':1E-5,
-        'photjitter':1E-5,
+        'photjitter':1E-5
         })
     
  
@@ -146,9 +146,9 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         #     indict['priors'][f'vrad_{kk}']  = ['uniform',[-50.0,50.0]]
 
     # q-vrad relationship
-    indict['priors'][f'mass_ratio']  = ['uniform',[1e-5, 1.0]]
-    indict['priors'][f'vrad_sys']  = ['uniform',[RVest-100.0, RVest+100.0]]
-    indict['priors'][f'vrad_a']  = ['uniform',[RVest-100.0, RVest+100.0]]
+    # indict['priors']['mass_ratio']  = ['uniform',[1e-5, 1.0]]
+    # indict['priors']['vrad_sys']  = ['uniform',[RVest-100.0, RVest+100.0]]
+    # indict['priors']['vrad_a']  = ['uniform',[RVest-100.0, RVest+100.0]]
 
     # fix chemistry to be identical
     indict['priors']['binchem'] = ['binchem','fixed']
