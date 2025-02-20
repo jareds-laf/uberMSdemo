@@ -140,14 +140,14 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         indict['priors'][f'vstar_{kk}'] = ['tnormal',[0.0,4.0,0.0,50.0]]
         # indict['priors'][f'vmic_{kk}']  = ['uniform',[0.5,2.0]]
         indict['priors'][f'vmic_{kk}']  = ['Bruntt2012','fixed']
-        # if kk == 'p':
-        #     indict['priors'][f'vrad_{kk}']  = ['uniform',[-50.0,50.0]]
-        # else:
-        #     indict['priors'][f'vrad_{kk}']  = ['uniform',[-50.0,50.0]]
+        if kk == 'a':
+            indict['priors'][f'vrad_{kk}']  = ['uniform', [-500.0,500.0]]
+        else:
+            indict['priors'][f'vrad_{kk}']  = ['Wilson1941', 'fixed']
 
     # q-vrad relationship
-    # indict['priors']['mass_ratio']  = ['uniform',[1e-5, 1.0]]
-    # indict['priors']['vrad_sys']  = ['uniform',[RVest-100.0, RVest+100.0]]
+    indict['priors']['mass_ratio']  = ['uniform',[1e-5, 1.0]]
+    indict['priors']['vrad_sys']  = ['uniform',[-500.0, 500.0]]
     # indict['priors']['vrad_a']  = ['uniform',[RVest-100.0, RVest+100.0]]
 
     # fix chemistry to be identical
