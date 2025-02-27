@@ -128,7 +128,7 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
     indict['priors'] = {}
 
     # q-vrad relationship
-    indict['priors']['mass_ratio']  = ['uniform',[1e-5, 1.0]]
+    # indict['priors']['mass_ratio']  = ['uniform',[1e-5, 1.0]]
     indict['priors']['vrad_sys']  = ['uniform',[-500.0, 500.0]]
 
     for kk in ['a','b']:
@@ -144,13 +144,16 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         indict['priors'][f'vstar_{kk}'] = ['tnormal',[0.0,4.0,0.0,50.0]]
         # indict['priors'][f'vmic_{kk}']  = ['uniform',[0.5,2.0]]
         indict['priors'][f'vmic_{kk}']  = ['Bruntt2012','fixed']
-        if kk == 'a':
-            indict['priors'][f'vrad_{kk}']  = ['uniform', [-500.0,500.0]]
-        else:
-            indict['priors'][f'vrad_{kk}']  = ['Wilson1941', 'fixed']
+        # if kk == 'a':
+        #     indict['priors'][f'vrad_{kk}']  = ['uniform', [-500.0,500.0]]
+        # else:
+        #     indict['priors'][f'vrad_{kk}']  = ['Wilson1941', 'fixed']
 
     # fix chemistry to be identical
     indict['priors']['binchem'] = ['binchem','fixed']
+
+    # q-vrad priors
+    indict['priors']['q_vr'] = ['Wilson1941', 'fixed']
 
     # photometry priors
     indict['priors']['Av'] = ['tnormal',[Avest,0.1,0.0,Avest+1.0]]

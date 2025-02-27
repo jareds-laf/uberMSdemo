@@ -385,8 +385,8 @@ def runstar(gaiaid=None,outputname=None, version='V0', **kwargs):
         # ax_reg1_spec = fig.add_subplot(gs[4:,:2])
         # ax_reg2_spec = fig.add_subplot(gs[4:,2:4])
 
-        mkspec(ax_spec=ax_main_spec,ax_resid=ax_main_resid,
-               waverange=None,mod=[data['spec']['obs_wave'],specmod_est],
+        mkspec(ax_spec=ax_main_spec,ax_resid=ax_main_resid,waverange=None,
+               mod=[data['spec']['obs_wave'],specmod_est],
                pmod=[data['spec']['obs_wave'],specmod_pn],
                smod=[data['spec']['obs_wave'],specmod_s],
                data=data['spec'],labelx=True)
