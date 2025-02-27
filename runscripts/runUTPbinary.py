@@ -127,6 +127,10 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
     # define priors
     indict['priors'] = {}
 
+    # q-vrad relationship
+    indict['priors']['mass_ratio']  = ['uniform',[1e-5, 1.0]]
+    indict['priors']['vrad_sys']  = ['uniform',[-500.0, 500.0]]
+
     for kk in ['a','b']:
         # stellar priors
         indict['priors'][f'Teff_{kk}']    = ['uniform',[2500.0,10000.0]]
@@ -144,11 +148,6 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
             indict['priors'][f'vrad_{kk}']  = ['uniform', [-500.0,500.0]]
         else:
             indict['priors'][f'vrad_{kk}']  = ['Wilson1941', 'fixed']
-
-    # q-vrad relationship
-    indict['priors']['mass_ratio']  = ['uniform',[1e-5, 1.0]]
-    indict['priors']['vrad_sys']  = ['uniform',[-500.0, 500.0]]
-    # indict['priors']['vrad_a']  = ['uniform',[RVest-100.0, RVest+100.0]]
 
     # fix chemistry to be identical
     indict['priors']['binchem'] = ['binchem','fixed']
