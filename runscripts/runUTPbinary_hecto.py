@@ -12,7 +12,7 @@ NNtype = 'LinNet'
 mistNN = './models/mistNN/mistyNN_2.3_v256_v0.h5'
 
 def getdata():
-    hecto_dir = os.path.expanduser("/data/labs/douglaslab/sofairj/data/hecto_spectra")
+    hecto_dir = os.path.expanduser("/data/labs/douglaslab/sofairj/data/hectochelle_rereduction")
     hecto_filename = os.path.join(hecto_dir, "data_ngc6819_2010.0921_ngc6819_sep2010_1.7137.h5")
     f = h5py.File(hecto_filename, 'r')
 
@@ -40,7 +40,7 @@ def getdata():
         if filter != 'PS_y':
             phot[filter] = [float(phottab[filter][0]),float(phottab[filter][1])]
         else:
-            print('Skipping {filter} filter')
+            print(f'Skipping {filter} filter')
 
     # Need to change the names of the Gaia EDR3 filters to DR3
     # These filters are unchanged between EDR3 and DR3
@@ -60,9 +60,22 @@ def getdata():
     out['spec']['obs_eflux'] = spec['eflux']
     
     out['phot'] = {}
+
+    # TODO: Fix this sloppy code lol
     for kk in filtarr:
-        phot_i = phot[filter]
-        out['phot'][kk] = [phot_i[0],phot_i[1]]
+        if (kk != 'GaiaEDR3_BP') and (kk != 'GaiaEDR3_RP') and (kk != 'GaiaEDR3_G'):
+            phot_i = phot[filter]
+            out['phot'][kk] = [phot_i[0],phot_i[1]]
+        elif (kk == 'GaiaEDR3_BP'):
+            phot_i = phot['GaiaDR3_BP']
+            out['phot'][kk] = [phot_i[0],phot_i[1]]
+        elif (kk == 'GaiaEDR3_RP'):
+            phot_i = phot['GaiaDR3_RP']
+            out['phot'][kk] = [phot_i[0],phot_i[1]]
+        elif (kk == 'GaiaEDR3_G'):
+            phot_i = phot['GaiaDR3_G']
+            out['phot'][kk] = [phot_i[0],phot_i[1]]
+
 
     print(out['phot'])
     
@@ -167,10 +180,6 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
     # define priors
     indict['priors'] = {}
 
-    # q-vrad relationship
-    # indict['priors']['mass_ratio']  = ['uniform',[1e-5, 1.0]]
-    indict['priors']['vrad_sys']  = ['uniform',[-500.0, 500.0]]
-
     for kk in ['a','b']:
         # stellar priors
         indict['priors'][f'Teff_{kk}']    = ['uniform',[2500.0,10000.0]]
@@ -191,8 +200,11 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
 
     # fix chemistry to be identical
     indict['priors']['binchem'] = ['binchem','fixed']
-# q-vrad priors
-    indict['priors']['q_vr'] = ['Wilson1941','fixed']
+    
+    # q-vrad priors
+    indict['priors']['q_vr'] = ['Milliman2014','fixed']
+    # indict['priors']['mass_ratio']  = ['uniform',[1e-5, 1.0]]
+    # indict['priors']['vrad_sys']  = ['uniform',[-500.0, 500.0]]
 
     # photometry priors
     indict['priors']['Av'] = ['tnormal',[Avest,0.1,0.0,Avest+1.0]]

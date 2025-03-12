@@ -135,7 +135,7 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
 
     # q-vrad relationship
     # indict['priors']['mass_ratio']  = ['uniform',[1e-5, 1.0]]
-    indict['priors']['vrad_sys']  = ['uniform',[-500.0, 500.0]]
+    # indict['priors']['vrad_sys']  = ['uniform',[-500.0, 500.0]]
 
     for kk in ['a','b']:
         # stellar priors
