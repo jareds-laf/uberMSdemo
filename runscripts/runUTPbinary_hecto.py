@@ -60,10 +60,13 @@ def getdata():
     out['spec']['obs_eflux'] = spec['eflux']
     
     out['phot'] = {}
-    for kk in phot['band']:
-        phot_i = phot[phot['band'] == kk]
-        out['phot'][kk] = [phot_i['mag'][0],phot_i['emag'][0]]
+    for kk in filtarr:
+        phot_i = phot[filter]
+        out['phot'][kk] = [phot_i[0],phot_i[1]]
+
+    print(out['phot'])
     
+    # TODO: Need parallax for 6819
     out['parallax'] = [0.67427309655216, 0.012600687]
     out['RVest'] = 7.17
     out['Avest'] = 0.09
