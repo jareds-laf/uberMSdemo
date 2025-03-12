@@ -103,8 +103,8 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         '[a/Fe]_b':0.0,
         'log(R)_a':0.0,
         'log(R)_b':0.0,
-        'mass_ratio':0.5,
-        'vrad_sys':RVest,
+        'mass_ratio':0.8,
+        'vrad_sys':2.5,
         'vrad_a':-10.0,
         'vrad_b':10.0,
         'vstar_a':1.0,
@@ -153,7 +153,7 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
     indict['priors']['binchem'] = ['binchem','fixed']
 
     # q-vrad priors
-    indict['priors']['q_vr'] = ['Wilson1941', 'fixed']
+    indict['priors']['q_vr'] = ['Wilson1941','fixed']
 
     # photometry priors
     indict['priors']['Av'] = ['tnormal',[Avest,0.1,0.0,Avest+1.0]]
@@ -178,11 +178,11 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
 
     # define SVI parameters
     indict['svi'] = ({
-        'steps':300,
+        'steps':30000,
         'opt_tol':1E-6,
         'start_tol':1E-2,
         'progress_bar':progressbar,
-        'post_resample':300,
+        'post_resample':30000,
         })
 
     print('... Running TP')

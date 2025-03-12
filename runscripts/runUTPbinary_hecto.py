@@ -13,14 +13,15 @@ mistNN = './models/mistNN/mistyNN_2.3_v256_v0.h5'
 
 def getdata():
     hecto_dir = os.path.expanduser("/data/labs/douglaslab/sofairj/data/hecto_spectra")
-    hecto_filename = os.path.join(hecto_dir, "data_ngc6811_2019.0516_hectochelle_NGC6811_2019b_1.8149.h5")
+    hecto_filename = os.path.join(hecto_dir, "data_ngc6819_2010.0921_ngc6819_sep2010_1.7137.h5")
     f = h5py.File(hecto_filename, 'r')
 
 
     # 2080061393129929088 is the first star listed in the spectrum used here
     # 2128158910811247488 is an SB2 whose components are separated in most spectra
     # (data_ngc6811_2019.0516_hectochelle_NGC6811_2019b_1.8149.h5)
-    target = str(2128158910811247488)
+    # 2076392838230907392 is another relevant SB2 in NGC 6819
+    target = str(2076392838230907392)
     spec = Table([f[target]['wave'], f[target]['flux'],
                   f[target]['eflux']],
                   names=('wave', 'flux', 'eflux'))
@@ -139,8 +140,8 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         '[a/Fe]_b':0.0,
         'log(R)_a':0.0,
         'log(R)_b':0.0,
-        'q':0.5,
-        'vrad_sys':RVest,
+        'mass_ratio':0.8,
+        'vrad_sys':2.5,
         'vrad_a':-10.0,
         'vrad_b':10.0,
         'vstar_a':1.0,
@@ -150,7 +151,7 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         'dist':distest,
         'Av':Avest,
         'specjitter':1E-5,
-        'photjitter':1E-5,
+        'photjitter':1E-5
         })
     
  
@@ -162,6 +163,10 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
 
     # define priors
     indict['priors'] = {}
+
+    # q-vrad relationship
+    # indict['priors']['mass_ratio']  = ['uniform',[1e-5, 1.0]]
+    indict['priors']['vrad_sys']  = ['uniform',[-500.0, 500.0]]
 
     for kk in ['a','b']:
         # stellar priors
@@ -176,18 +181,15 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         indict['priors'][f'vstar_{kk}'] = ['tnormal',[0.0,4.0,0.0,50.0]]
         # indict['priors'][f'vmic_{kk}']  = ['uniform',[0.5,2.0]]
         indict['priors'][f'vmic_{kk}']  = ['Bruntt2012','fixed']
-        # if kk == 'p':
-        #     indict['priors'][f'vrad_{kk}']  = ['uniform',[-50.0,50.0]]
+        # if kk == 'a':
+        #     indict['priors'][f'vrad_{kk}']  = ['uniform', [-500.0,500.0]]
         # else:
-        #     indict['priors'][f'vrad_{kk}']  = ['uniform',[-50.0,50.0]]
-
-    # q-vrad relationship
-    indict['priors'][f'q']  = ['uniform',[1e-5, 1.0]]
-    indict['priors'][f'vrad_sys']  = ['uniform',[RVest-100.0, RVest+100.0]]
-    indict['priors'][f'vrad_a']  = ['uniform',[RVest-100.0, RVest+100.0]]
+        #     indict['priors'][f'vrad_{kk}']  = ['Wilson1941', 'fixed']
 
     # fix chemistry to be identical
     indict['priors']['binchem'] = ['binchem','fixed']
+# q-vrad priors
+    indict['priors']['q_vr'] = ['Wilson1941','fixed']
 
     # photometry priors
     indict['priors']['Av'] = ['tnormal',[Avest,0.1,0.0,Avest+1.0]]
@@ -212,7 +214,7 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
 
     # define SVI parameters
     indict['svi'] = ({
-        'steps':30000,
+        'steps':300,
         'opt_tol':1E-6,
         'start_tol':1E-2,
         'progress_bar':progressbar,
