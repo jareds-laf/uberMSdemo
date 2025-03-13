@@ -1,10 +1,7 @@
-from uberMS_binary.binary import runSVI
+from uberMS.smes import runSVI
 import numpy as np
 import argparse
 from astropy.table import Table
-import os
-import logging
-import h5py
 
 specNN = './models/specNN/modV0_spec_LinNet_R42K_WL510_535_wvt.h5'
 photNN = './models/photNN/'
@@ -69,7 +66,7 @@ def getdata():
     # print(out['phot'])
     
     out['parallax'] = [0.3341, 0.0214]
-    out['RVest'] = 7.17
+    out['RVest'] = 2.5
     out['Avest'] = 0.09
 
     return out
@@ -134,28 +131,26 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
     RVest    = data['RVest']
 
     initpars = ({
-        'Teff_a':6000.0,
-        'Teff_b':5000.0,
-        'log(g)_a':4.0,
-        'log(g)_b':5.0,
-        '[Fe/H]_a':0.0,
-        '[Fe/H]_b':0.0,
-        '[a/Fe]_a':0.0,
-        '[a/Fe]_b':0.0,
-        'log(R)_a':0.0,
-        'log(R)_b':0.0,
-        'mass_ratio':0.8,
-        'vrad_sys':2.5,
-        'vrad_a':-10.0,
-        'vrad_b':10.0,
-        'vstar_a':1.0,
-        'vstar_b':1.0,
-        'vmic_a':1.0,
-        'vmic_b':1.0,
+        'Teff_p':6000.0,
+        'Teff_s':5000.0,
+        'log(g)_p':4.0,
+        'log(g)_s':5.0,
+        '[Fe/H]_p':0.0,
+        '[Fe/H]_s':0.0,
+        '[a/Fe]_p':0.0,
+        '[a/Fe]_s':0.0,
+        'log(R)_p':0.0,
+        'log(R)_s':0.0,
+        'vrad_p':-10.0,
+        'vrad_s':10.0,
+        'vstar_p':1.0,
+        'vstar_s':1.0,
+        'vmic_p':1.0,
+        'vmic_s':1.0,
         'dist':distest,
         'Av':Avest,
         'specjitter':1E-5,
-        'photjitter':1E-5
+        'photjitter':1E-5,
         })
     
  
@@ -168,7 +163,7 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
     # define priors
     indict['priors'] = {}
 
-    for kk in ['a','b']:
+    for kk in ['p','s']:
         # stellar priors
         indict['priors'][f'Teff_{kk}']    = ['uniform',[2500.0,10000.0]]
         indict['priors'][f'log(g)_{kk}']  = ['uniform',[0.0,5.5]]
@@ -181,18 +176,14 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         indict['priors'][f'vstar_{kk}'] = ['tnormal',[0.0,4.0,0.0,50.0]]
         # indict['priors'][f'vmic_{kk}']  = ['uniform',[0.5,2.0]]
         indict['priors'][f'vmic_{kk}']  = ['Bruntt2012','fixed']
-        # if kk == 'a':
-        #     indict['priors'][f'vrad_{kk}']  = ['uniform', [-500.0,500.0]]
+        indict['priors'][f'vrad_{kk}']  = ['uniform',[RVest-100.0,RVest+100.0]]
+        # if kk == 'p':
+        #     indict['priors'][f'vrad_{kk}']  = ['uniform',[-50.0,50.0]]
         # else:
-        #     indict['priors'][f'vrad_{kk}']  = ['Wilson1941', 'fixed']
+        #     indict['priors'][f'vrad_{kk}']  = ['uniform',[-50.0,50.0]]
 
     # fix chemistry to be identical
     indict['priors']['binchem'] = ['binchem','fixed']
-    
-    # q-vrad priors
-    indict['priors']['q_vr'] = ['Milliman2014','fixed']
-    # indict['priors']['mass_ratio']  = ['uniform',[1e-5, 1.0]]
-    # indict['priors']['vrad_sys']  = ['uniform',[-500.0, 500.0]]
 
     # photometry priors
     indict['priors']['Av'] = ['tnormal',[Avest,0.1,0.0,Avest+1.0]]
