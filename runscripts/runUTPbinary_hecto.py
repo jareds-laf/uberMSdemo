@@ -69,7 +69,7 @@ def getdata():
     # print(out['phot'])
     
     out['parallax'] = [0.3341, 0.0214]
-    out['RVest'] = 7.17
+    out['RVest'] = 2.5
     out['Avest'] = 0.09
 
     return out
@@ -145,7 +145,7 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         'log(R)_a':0.0,
         'log(R)_b':0.0,
         'mass_ratio':0.8,
-        'vrad_sys':2.5,
+        'vrad_sys':RVest,
         'vrad_a':-10.0,
         'vrad_b':10.0,
         'vstar_a':1.0,
