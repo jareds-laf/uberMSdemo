@@ -62,25 +62,25 @@ def getdata():
     out['phot'] = {}
 
     # TODO: Fix this sloppy code lol
-    for kk in filtarr:
-        if (kk != 'GaiaEDR3_BP') and (kk != 'GaiaEDR3_RP') and (kk != 'GaiaEDR3_G'):
-            phot_i = phot[filter]
-            out['phot'][kk] = [phot_i[0],phot_i[1]]
-        elif (kk == 'GaiaEDR3_BP'):
-            phot_i = phot['GaiaDR3_BP']
-            out['phot'][kk] = [phot_i[0],phot_i[1]]
-        elif (kk == 'GaiaEDR3_RP'):
-            phot_i = phot['GaiaDR3_RP']
-            out['phot'][kk] = [phot_i[0],phot_i[1]]
-        elif (kk == 'GaiaEDR3_G'):
-            phot_i = phot['GaiaDR3_G']
-            out['phot'][kk] = [phot_i[0],phot_i[1]]
+    for kk in phot:
+        #print(kk)
+        phot_i = phot[filter]
+        out['phot'][kk] = [phot_i[0],phot_i[1]]
+        #elif (kk == 'GaiaEDR3_BP'):
+        #    phot_i = phot['GaiaDR3_BP']
+        #    out['phot']['GaiaDR3_BP'] = [phot_i[0],phot_i[1]]
+        #elif (kk == 'GaiaEDR3_RP'):
+        #    phot_i = phot['GaiaDR3_RP']
+        #    out['phot']['GaiaDR3_RP'] = [phot_i[0],phot_i[1]]
+        #elif (kk == 'GaiaEDR3_G'):
+        #    phot_i = phot['GaiaDR3_G']
+        #    out['phot']['GaiaDR3_G'] = [phot_i[0],phot_i[1]]
 
 
-    print(out['phot'])
+    # print(out['phot'])
     
-    # parallax in mas
-    out['parallax'] = [0.3341, 0.0214]
+    # TODO: Need parallax for 6819
+    out['parallax'] = [0.67427309655216, 0.012600687]
     out['RVest'] = 7.17
     out['Avest'] = 0.09
 
@@ -229,7 +229,7 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
 
     # define SVI parameters
     indict['svi'] = ({
-        'steps':300,
+        'steps':30000,
         'opt_tol':1E-6,
         'start_tol':1E-2,
         'progress_bar':progressbar,
