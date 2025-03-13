@@ -79,8 +79,8 @@ def getdata():
 
     print(out['phot'])
     
-    # TODO: Need parallax for 6819
-    out['parallax'] = [0.67427309655216, 0.012600687]
+    # parallax in mas
+    out['parallax'] = [0.3341, 0.0214]
     out['RVest'] = 7.17
     out['Avest'] = 0.09
 
