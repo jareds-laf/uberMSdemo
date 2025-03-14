@@ -2,6 +2,9 @@ from uberMS.smes import runSVI
 import numpy as np
 import argparse
 from astropy.table import Table
+import os
+import logging
+import h5py
 
 specNN = './models/specNN/modV0_spec_LinNet_R42K_WL510_535_wvt.h5'
 photNN = './models/photNN/'
