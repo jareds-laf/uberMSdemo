@@ -10,3 +10,4 @@ demospec_18Sco.fits
 images
 *.png
 .ipynb_checkpoints/
+synth*.csv
