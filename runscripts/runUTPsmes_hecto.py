@@ -63,7 +63,8 @@ def getdata():
 
     # for each filter, add the magnitude and error to the out dict
     for kk in phot:
-        phot_i = phot[filter]
+        print('kk in phot:', kk)
+        phot_i = phot[kk]
         out['phot'][kk] = [phot_i[0],phot_i[1]]
 
     # print(out['phot'])
