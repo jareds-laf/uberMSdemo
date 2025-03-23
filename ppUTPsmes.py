@@ -103,6 +103,7 @@ def mkspec(ax_spec=None,ax_resid=None,
 def mkphot(ax_phot=None,ax_flux=None,mod=None,data=None,bfdict=None):
 
     photdata = data
+    print(photdata)
 
     # change dist back to pc
     dist = bfdict['dist'][0]*1000.0
@@ -213,6 +214,7 @@ def mkphot(ax_phot=None,ax_flux=None,mod=None,data=None,bfdict=None):
         if np.abs(m-mod)/me > 5.0:
             me = np.abs(m-mod)
         if (m < 30) & (m > -30):
+            # red is the model, black is the observed data (mag.)
             ax_phot.scatter(w/1E+4,mod,marker='o',c='C3',zorder=1,s=5)
             ax_phot.errorbar(w/1E+4,m,yerr=me,ls='',marker=',',c='k',zorder=-1)
             ax_phot.scatter(w/1E+4,m,marker=s,c='k',zorder=-1,s=20)
