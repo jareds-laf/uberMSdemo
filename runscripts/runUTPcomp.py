@@ -11,28 +11,24 @@ photNN = './models/photNN/'
 NNtype = 'LinNet'
 mistNN = './models/mistNN/mistyNN_2.3_v256_v0.h5'
 
-def getdata():
-    spec = Table.read('data/spec.fits')
-    phot = Table.read('data/phot.dat',format='ascii')
+def getdata(spec='', phot=''):
+    spec = Table.read(f'data/{spec}')
+    phot = Table.read(f'data/{phot}')
     
     out = {}
     
     out['spec'] = {}
     out['spec']['obs_wave'] = spec['wave']
     out['spec']['obs_flux'] = spec['flux']
-    out['spec']['obs_eflux'] = spec['eflux']
+    # out['spec']['obs_eflux'] = spec['eflux']
     
     out['phot'] = {}
     
     for kk in phot['band']:
         phot_i = phot[phot['band'] == kk]
         out['phot'][kk] = [phot_i['mag'][0],phot_i['emag'][0]]
-        print(phot_i)
-        print()
-        print(out['phot'][kk])
-        print()
 
-    print(phot['band'].keys())
+    # print(phot['band'].keys())
     out['parallax'] = [1000/57.134, 0.012600687]
     out['RVest'] = 7.17
     out['Avest'] = 0.09
@@ -84,8 +80,8 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         print('number of pixels: {0}'.format(len(spec_i['obs_wave'])))
         print('min/max wavelengths: {0} -- {1}'.format(spec_i['obs_wave'].min(),spec_i['obs_wave'].max()))
         print('median flux: {0}'.format(np.median(spec_i['obs_flux'])))
-        print('median flux error: {0}'.format(np.median(spec_i['obs_eflux'])))
-        print('SNR: {0}'.format(np.median(spec_i['obs_flux']/spec_i['obs_eflux'])))
+        # print('median flux error: {0}'.format(np.median(spec_i['obs_eflux'])))
+        # print('SNR: {0}'.format(np.median(spec_i['obs_flux']/spec_i['obs_eflux'])))
         print('      Npixels = {0}'.format(len(spec_i['obs_wave'])))
     if 'parallax' in indict['data'].keys():
         print('Parallax:')
