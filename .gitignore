@@ -11,3 +11,4 @@ images
 *.png
 .ipynb_checkpoints/
 synth*.csv
+synth
