@@ -12,3 +12,5 @@ images
 .ipynb_checkpoints/
 synth*.csv
 synth
+runscripts/__pycache__
+MISTstuff/*.cmd
