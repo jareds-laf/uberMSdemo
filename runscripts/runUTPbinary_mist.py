@@ -73,7 +73,12 @@ def getdata():
         phot_i = phot[kk]
         out['phot'][kk] = [phot_i[0],phot_i[1]]
 
-    out['mist'] = iso['log_g', 'log_Teff', 'initial_mass']
+    out['iso'] = data['log_Teff', 'log_g', 'initial_mass']
+
+    # out['iso'] = 10**data['log_Teff'], data['log_g'], data['initial_mass']
+
+    out['iso']['Teff'] = 10**out['iso']['log_Teff']
+    del(out['iso']['log_Teff'])
     
     out['parallax'] = [0.3341, 0.0214]
     out['RVest'] = 2.5
@@ -134,7 +139,12 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         print('      parallax = {0} +/- {1}'.format(*indict['data']['parallax']))
         print('Distance Range:')
         print('      dist = {0} - {1} pc'.format(distmin,distmax))
-
+    if 'mist' in indict['data'].keys():
+        print('MIST Isochrone:')
+        print(f'Teff range: {min(indict['mist']['Teff'])} - {max(indict['mist']['Teff'])}')
+        print(f'log(g) range: {min(indict['mist']['log(g)'])} - {max(indict['mist']['log(g)'])}')
+        print(f'mass range: {min(indict['mist']['initial_mass'])} - {max(indict['mist']['initial_mass'])}')
+    
     # set some initial guesses at parameters
     
     Avest    = data['Avest']
