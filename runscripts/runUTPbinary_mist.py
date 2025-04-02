@@ -51,13 +51,13 @@ def getdata():
 
 
     # read in MIST isochrone
-    iso = at.read("MIST_iso_67e56fd8ac521.iso.cmd")
+    iso = at.read("./MIST_iso_67e56fd8ac521.iso.cmd")
 
     # filter out AGB/RGB stars so we're left with just main sequence stars
     ms = (iso['EEP'] < 605) & (iso['log_g'] > 2.0)
     iso = iso[ms]
 
-    
+    # create out dict
     out = {}
     
     out['spec'] = {}
@@ -73,7 +73,10 @@ def getdata():
         phot_i = phot[kk]
         out['phot'][kk] = [phot_i[0],phot_i[1]]
 
-    out['mist'] = iso['log_g', 'log_Teff', 'initial_mass']
+    out['iso'] = iso['log_Teff', 'log_g', 'initial_mass']
+
+    out['iso']['Teff'] = 10**out['iso']['log_Teff']
+    del(out['iso']['log_Teff'])
     
     out['parallax'] = [0.3341, 0.0214]
     out['RVest'] = 2.5
@@ -134,7 +137,12 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         print('      parallax = {0} +/- {1}'.format(*indict['data']['parallax']))
         print('Distance Range:')
         print('      dist = {0} - {1} pc'.format(distmin,distmax))
-
+    if 'mist' in indict['data'].keys():
+        print('MIST Isochrone:')
+        print('      Teff range: {0} - {1}'.format(min(indict['mist']['Teff']), max(indict['mist']['Teff'])))
+        print('      log(g) range: {0} - {1}'.format(min(indict['mist']['log(g)']), max(indict['mist']['log(g)'])))
+        print('      mass range: {0} - {1}'.format(min(indict['mist']['initial_mass']), max(indict['mist']['initial_mass'])))
+    
     # set some initial guesses at parameters
     
     Avest    = data['Avest']
@@ -152,6 +160,8 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         'log(R)_a':0.0,
         'log(R)_b':0.0,
         'mass_ratio':0.8,
+        'M_a':1.0,
+        'M_b':0.8,
         'vrad_sys':RVest,
         'vrad_a':-10.0,
         'vrad_b':10.0,
@@ -224,7 +234,7 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
 
     # define SVI parameters
     indict['svi'] = ({
-        'steps':30000,
+        'steps':100,
         'opt_tol':1E-6,
         'start_tol':1E-2,
         'progress_bar':progressbar,
