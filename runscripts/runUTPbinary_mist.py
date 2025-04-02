@@ -51,7 +51,7 @@ def getdata():
 
 
     # read in MIST isochrone
-    iso = at.read("MIST_iso_67e56fd8ac521.iso.cmd")
+    iso = at.read("./MIST_iso_67e56fd8ac521.iso.cmd")
 
     # filter out AGB/RGB stars so we're left with just main sequence stars
     ms = (iso['EEP'] < 605) & (iso['log_g'] > 2.0)
@@ -139,9 +139,9 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         print('      dist = {0} - {1} pc'.format(distmin,distmax))
     if 'mist' in indict['data'].keys():
         print('MIST Isochrone:')
-        print(f'      Teff range: {min(indict['mist']['Teff'])} - {max(indict['mist']['Teff'])}')
-        print(f'      log(g) range: {min(indict['mist']['log(g)'])} - {max(indict['mist']['log(g)'])}')
-        print(f'      mass range: {min(indict['mist']['initial_mass'])} - {max(indict['mist']['initial_mass'])}')
+        print('      Teff range: {0} - {1}'.format(min(indict['mist']['Teff']), max(indict['mist']['Teff'])))
+        print('      log(g) range: {0} - {1}'.format(min(indict['mist']['log(g)']), max(indict['mist']['log(g)'])))
+        print('      mass range: {0} - {1}'.format(min(indict['mist']['initial_mass']), max(indict['mist']['initial_mass'])))
     
     # set some initial guesses at parameters
     
@@ -234,7 +234,7 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
 
     # define SVI parameters
     indict['svi'] = ({
-        'steps':30000,
+        'steps':100,
         'opt_tol':1E-6,
         'start_tol':1E-2,
         'progress_bar':progressbar,
