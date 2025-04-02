@@ -57,7 +57,7 @@ def getdata():
     ms = (iso['EEP'] < 605) & (iso['log_g'] > 2.0)
     iso = iso[ms]
 
-    
+    # create out dict
     out = {}
     
     out['spec'] = {}
@@ -73,9 +73,7 @@ def getdata():
         phot_i = phot[kk]
         out['phot'][kk] = [phot_i[0],phot_i[1]]
 
-    out['iso'] = data['log_Teff', 'log_g', 'initial_mass']
-
-    # out['iso'] = 10**data['log_Teff'], data['log_g'], data['initial_mass']
+    out['iso'] = iso['log_Teff', 'log_g', 'initial_mass']
 
     out['iso']['Teff'] = 10**out['iso']['log_Teff']
     del(out['iso']['log_Teff'])
@@ -141,9 +139,9 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         print('      dist = {0} - {1} pc'.format(distmin,distmax))
     if 'mist' in indict['data'].keys():
         print('MIST Isochrone:')
-        print(f'Teff range: {min(indict['mist']['Teff'])} - {max(indict['mist']['Teff'])}')
-        print(f'log(g) range: {min(indict['mist']['log(g)'])} - {max(indict['mist']['log(g)'])}')
-        print(f'mass range: {min(indict['mist']['initial_mass'])} - {max(indict['mist']['initial_mass'])}')
+        print(f'      Teff range: {min(indict['mist']['Teff'])} - {max(indict['mist']['Teff'])}')
+        print(f'      log(g) range: {min(indict['mist']['log(g)'])} - {max(indict['mist']['log(g)'])}')
+        print(f'      mass range: {min(indict['mist']['initial_mass'])} - {max(indict['mist']['initial_mass'])}')
     
     # set some initial guesses at parameters
     
