@@ -137,11 +137,13 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         print('      parallax = {0} +/- {1}'.format(*indict['data']['parallax']))
         print('Distance Range:')
         print('      dist = {0} - {1} pc'.format(distmin,distmax))
-    if 'mist' in indict['data'].keys():
-        print('MIST Isochrone:')
-        print('      Teff range: {0} - {1}'.format(min(indict['mist']['Teff']), max(indict['mist']['Teff'])))
-        print('      log(g) range: {0} - {1}'.format(min(indict['mist']['log(g)']), max(indict['mist']['log(g)'])))
-        print('      mass range: {0} - {1}'.format(min(indict['mist']['initial_mass']), max(indict['mist']['initial_mass'])))
+    
+    
+    print('---- Isochrone ----')
+    if 'iso' in indict.keys():
+        print('Teff range: {0} - {1}'.format(min(indict['iso']['Teff']), max(indict['iso']['Teff'])))
+        print('log(g) range: {0} - {1}'.format(min(indict['iso']['log(g)']), max(indict['iso']['log(g)'])))
+        print('mass range: {0} - {1}'.format(min(indict['iso']['initial_mass']), max(indict['iso']['initial_mass'])))
     
     # set some initial guesses at parameters
     
