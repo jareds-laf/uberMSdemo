@@ -69,12 +69,10 @@ def getdata():
 
     # for each filter, add the magnitude and error to the out dict
     for kk in phot:
-        print("kk in phot:", kk)
         phot_i = phot[kk]
         out['phot'][kk] = [phot_i[0],phot_i[1]]
 
     out['iso'] = iso['log_Teff', 'log_g', 'initial_mass']
-
     out['iso']['Teff'] = 10**out['iso']['log_Teff']
     del(out['iso']['log_Teff'])
     
