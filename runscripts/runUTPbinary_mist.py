@@ -51,12 +51,12 @@ def getdata():
 
 
     # read in MIST isochrone
-    iso = at.read("./MIST_iso_67e56fd8ac521.iso.cmd")
+    iso = at.read("./data/MIST_iso_67e56fd8ac521.iso.cmd")
 
     # filter out AGB/RGB stars so we're left with just main sequence stars
     ms = (iso['EEP'] < 605) & (iso['log_g'] > 2.0)
     iso = iso[ms]
-
+    print(f"Here is your iso in the getdata():\n{iso}")
     # create out dict
     out = {}
     
@@ -81,6 +81,8 @@ def getdata():
     out['parallax'] = [0.3341, 0.0214]
     out['RVest'] = 2.5
     out['Avest'] = 0.09
+
+    print(f'Just before printing, here is your out dict:\n{out}')
 
     return out
 
@@ -118,6 +120,12 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
     distmin = 1000.0/(data['parallax'][0] + 5.0*data['parallax'][1]) 
     distmax = 1000.0/(data['parallax'][0] - 5.0*data['parallax'][1])
 
+    # add isochrone info into indict
+    indict['iso'] = {}
+    indict['iso']['Teff'] = data['iso']['Teff']
+    indict['iso']['log(g)'] = data['iso']['log_g']
+    indict['iso']['initial_mass'] = data['iso']['initial_mass']
+
     print('---- Input Data ----')
     if 'phot' in indict['data'].keys():
         print('Phot:')
@@ -144,6 +152,8 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         print('Teff range: {0} - {1}'.format(min(indict['iso']['Teff']), max(indict['iso']['Teff'])))
         print('log(g) range: {0} - {1}'.format(min(indict['iso']['log(g)']), max(indict['iso']['log(g)'])))
         print('mass range: {0} - {1}'.format(min(indict['iso']['initial_mass']), max(indict['iso']['initial_mass'])))
+    else:
+        print('No isochrone data provided')
     
     # set some initial guesses at parameters
     
