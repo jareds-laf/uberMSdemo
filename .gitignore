@@ -16,3 +16,4 @@ runscripts/__pycache__
 MISTstuff/*.cmd
 find_stars_in_hecto.ipynb
 playing_with_uberms_demo.ipynb
+__pycache__
