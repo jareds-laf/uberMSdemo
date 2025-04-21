@@ -9,33 +9,38 @@ import astropy.units as u
 from scipy import constants
 speedoflight = constants.c / 1000.0
 
-def getdata(catfile=None,gaiaid=None,starind=None):
-    # breakpoint()
-    th5 = h5py.File(catfile,'r')
-    cat_i = Table(th5['catalog'][()])
 
-    if gaiaid != None:
-        t = th5[f'{gaiaid}']
-        # breakpoint()
-        cat_ii = cat_i[cat_i['GAIAEDR3_ID'] == gaiaid]
-        # breakpoint()
-        cat = {x:cat_ii[x][0] for x in cat_ii.keys()}
-        # breakpoint()
+def getdata(spec='', phot=''):
+    spec = Table.read(f'./{spec}')
+    phot = Table.read(f'./{phot}')
 
-    elif starind != None:
-        cat_ii = cat_i[starind]
-        cat = {x:cat_ii[x] for x in cat_ii.keys()}
+# def getdata(catfile=None,gaiaid=None,starind=None):
+#     # breakpoint()
+#     th5 = h5py.File(catfile,'r')
+#     cat_i = Table(th5['catalog'][()])
+
+#     if gaiaid != None:
+#         t = th5[f'{gaiaid}']
+#         # breakpoint()
+#         cat_ii = cat_i[cat_i['GAIAEDR3_ID'] == gaiaid]
+#         # breakpoint()
+#         cat = {x:cat_ii[x][0] for x in cat_ii.keys()}
+#         # breakpoint()
+
+#     elif starind != None:
+#         cat_ii = cat_i[starind]
+#         cat = {x:cat_ii[x] for x in cat_ii.keys()}
         
-        gaiaid = cat['GAIAEDR3_ID']
-        t = th5[f'{gaiaid}']
+#         gaiaid = cat['GAIAEDR3_ID']
+#         t = th5[f'{gaiaid}']
                 
-    header = {ii:th5['header'][ii][()] for ii in th5['header'].keys()}
-    hdr_date = header['DATE-OBS']
-    location = EarthLocation.of_site('MMT')
+#     header = {ii:th5['header'][ii][()] for ii in th5['header'].keys()}
+#     hdr_date = header['DATE-OBS']
+#     location = EarthLocation.of_site('MMT')
 
-    sc = SkyCoord(ra=cat['GAIAEDR3_RA']*u.deg,dec=cat['GAIAEDR3_DEC']*u.deg)
-    barycorr = sc.radial_velocity_correction(obstime=Time(hdr_date), location=location)
-    HC = float(barycorr.to(u.km/u.s).value)
+#     sc = SkyCoord(ra=cat['GAIAEDR3_RA']*u.deg,dec=cat['GAIAEDR3_DEC']*u.deg)
+#     barycorr = sc.radial_velocity_correction(obstime=Time(hdr_date), location=location)
+#     HC = float(barycorr.to(u.km/u.s).value)
     
     # Need to change the names of the Gaia EDR3 filters to DR3
     # These filters are unchanged between EDR3 and DR3
@@ -51,9 +56,9 @@ def getdata(catfile=None,gaiaid=None,starind=None):
     out['phot'] = {}
     
     # spec
-    out['spec']['obs_wave']  = (1.0 - (HC/speedoflight)) * airtovacuum(t['wave'][()])
-    out['spec']['obs_flux']  = t['flux'][()]
-    out['spec']['obs_eflux'] = t['eflux'][()]
+    out['spec']['obs_wave'] = spec['wave']
+    out['spec']['obs_flux'] = spec['flux']
+    # out['spec']['obs_eflux'] = t['eflux'][()]
 
     # medflux = np.nanmedian(out['spec']['obs_flux'])
     # out['spec']['obs_flux'] = out['spec']['obs_flux'] / medflux

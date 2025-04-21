@@ -12,8 +12,8 @@ NNtype = 'LinNet'
 mistNN = './models/mistNN/mistyNN_2.3_v256_v0.h5'
 
 def getdata(spec='', phot=''):
-    spec = Table.read(f'./{spec}')
-    phot = Table.read(f'./{phot}')
+    spec = Table.read(f'{spec}')
+    phot = Table.read(f'{phot}')
     
     out = {}
     
