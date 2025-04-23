@@ -10,17 +10,13 @@ from scipy import constants
 speedoflight = constants.c / 1000.0
 
 def getdata(catfile=None,gaiaid=None,starind=None):
-    # breakpoint()
     th5 = h5py.File(catfile,'r')
     cat_i = Table(th5['catalog'][()])
 
     if gaiaid != None:
         t = th5[f'{gaiaid}']
-        # breakpoint()
         cat_ii = cat_i[cat_i['GAIAEDR3_ID'] == gaiaid]
-        # breakpoint()
         cat = {x:cat_ii[x][0] for x in cat_ii.keys()}
-        # breakpoint()
 
     elif starind != None:
         cat_ii = cat_i[starind]
@@ -36,15 +32,6 @@ def getdata(catfile=None,gaiaid=None,starind=None):
     sc = SkyCoord(ra=cat['GAIAEDR3_RA']*u.deg,dec=cat['GAIAEDR3_DEC']*u.deg)
     barycorr = sc.radial_velocity_correction(obstime=Time(hdr_date), location=location)
     HC = float(barycorr.to(u.km/u.s).value)
-    
-    # Need to change the names of the Gaia EDR3 filters to DR3
-    # These filters are unchanged between EDR3 and DR3
-    #phot['GaiaDR3_BP'] = phot.pop('GaiaEDR3_BP')
-    #phot['GaiaDR3_RP'] = phot.pop('GaiaEDR3_RP')
-    #phot['GaiaDR3_G'] = phot.pop('GaiaEDR3_G')
-    #t['phot']['GaiaDR3_BP'] = t['phot'].pop('GaiaEDR3_BP')
-    #t['phot']['GaiaDR3_RP'] = t['phot'].pop('GaiaEDR3_RP')
-    #t['phot']['GaiaDR3_G'] = t['phot'].pop('GaiaEDR3_G')
 
     out = {}
     out['spec'] = {}
@@ -79,7 +66,6 @@ def getdata(catfile=None,gaiaid=None,starind=None):
                 continue
             out['phot'][ff] = [phot_i[0],phot_i[1]]
             usedfilters.append(ff)
-
     out['phot_filtarr'] = usedfilters
     
     # parallax
@@ -154,9 +140,7 @@ def getall(gaiaid=None,date=None,cluster=None):
     out = {}
     out['spec'] = []
     out['specname'] = []
-    # breakpoint()
     for ii,ww in enumerate(workingfiles):
-        # breakpoint()
         data = getdata(catfile=ww,gaiaid=gaiaid)
         if ii == 0:
             out['phot']     = data['phot']
