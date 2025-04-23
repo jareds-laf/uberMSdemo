@@ -5,8 +5,7 @@ from jax import jit
 import itertools
 
 from Payne.jax.genmod import GenMod
-from runscripts.getdataH5_phill import getall as getallh5
-# from runUTPbinary import getdata
+import getdataH5
 
 import matplotlib
 matplotlib.use('AGG')
@@ -15,11 +14,21 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.gridspec as gridspec
 from matplotlib.ticker import MaxNLocator
 
-specNN = './models/specNN/modV0_spec_LinNet_R42K_WL510_535_wvt.h5'
-photNN = './models/photNN/'
-NNtype = 'LinNet'
-mistNN = './models/mistNN/mistyNN_2.3_v256_v0.h5'
-SBlib  = './models/specNN/c3k_v1.3.sed_r500.h5'
+import socket,os
+hostname = socket.gethostname()
+if hostname[:4] == 'holy':
+    holypath   = os.environ.get('HOLYSCRATCH')
+    photNN = '{0}/conroy_lab/pacargile/ThePayne/SED/VARRV/'.format(holypath)
+    specNN = '{0}/conroy_lab/pacargile/ThePayne/Hecto_FAL/YSTANN_wvt.h5'.format(holypath)
+    datadir = '{}/conroy_lab/pacargile/SEGUE/data/'
+    NNtype = 'LinNet'
+    SBlib = '{}/conroy_lab/pacargile/CKC/ckc_R500.h5'.format(holypath)
+else:
+    specNN = '/Users/pcargile/Astro/ThePayne/specANN/rv31/v256/modV0_spec_LinNet_R42K_WL510_535_wvt.h5'
+    photNN = '/Users/pcargile/Astro/ThePayne/photANN/'
+    NNtype = 'LinNet'
+    SBlib = '/Users/pcargile/Astro/c3k/c3k_v1.3/lores/c3k_v1.3.sed_r500.h5'
+    # SBlib = '/Users/pcargile/Astro/ckc/ckc_R500.h5'
 
 def planck(wav, T):
     h = 6.626e-34
@@ -84,7 +93,6 @@ def mkspec(ax_spec=None,ax_resid=None,
                     ls='-',lw=0.5,c='k',alpha=1.0)
 
     ax_spec.set_xlim(waverange[0],waverange[1])
-
     if labely:
         ax_spec.set_ylabel('Flux')
 
@@ -110,7 +118,7 @@ def mkphot(ax_phot=None,ax_flux=None,mod=None,data=None,bfdict=None):
     dist = bfdict['dist'][0]*1000.0
 
     sedstr = (
-        'GaiaDR3 G = {0:.2f}'.format(photdata['GaiaDR3_G'][0])
+        'GaiaEDR3 G = {0:.2f}'.format(photdata['GaiaEDR3_G'][0])
         )
     if 'PS_g' in photdata.keys():
         sedstr += '\n PS g = {0:.2f}'.format(photdata['PS_g'][0])
@@ -124,9 +132,9 @@ def mkphot(ax_phot=None,ax_flux=None,mod=None,data=None,bfdict=None):
     #     horizontalalignment='right',verticalalignment='top', 
     #     transform=ax_flux.transAxes,fontsize=8)
 
-    from uberMS.utils import star_basis
-    from uberMS.utils import photsys
-    from uberMS.utils import ccm_curve
+    from h3py.ms import star_basis
+    from h3py.ms import photsys
+    from h3py.ms import ccm_curve
 
     SB = star_basis.StarBasis(
         libname=SBlib,
@@ -144,28 +152,28 @@ def mkphot(ax_phot=None,ax_flux=None,mod=None,data=None,bfdict=None):
     filtercurves = {pb:filtercurves_i[pb] for pb in photbands}
 
 
-    if bfdict['[Fe/H]_a'][0] >= 0.5:
+    if bfdict['[Fe/H]_p'][0] >= 0.5:
         SEDfeh = 0.5
-    elif bfdict['[Fe/H]_a'][0] <= -3.0:
+    elif bfdict['[Fe/H]_p'][0] <= -3.0:
         SEDfeh = -3.0
     else:
-        SEDfeh = bfdict['[Fe/H]_a'][0]
+        SEDfeh = bfdict['[Fe/H]_p'][0]
 
-    if bfdict['Teff_a'][0] <= 3500.0:
+    if bfdict['Teff_p'][0] <= 3500.0:
         SEDTeff = 3500.0
     else:
-        SEDTeff = bfdict['Teff_a'][0]
+        SEDTeff = bfdict['Teff_p'][0]
 
-    if bfdict['log(g)_a'][0] >= 5.5:
+    if bfdict['log(g)_p'][0] >= 5.5:
         SEDlogg = 5.5
     else:
-        SEDlogg = bfdict['log(g)_a'][0]
+        SEDlogg = bfdict['log(g)_p'][0]
 
     spec_w,spec_f,_ = SB.get_star_spectrum(
         logt=np.log10(SEDTeff),logg=SEDlogg,feh=SEDfeh)
 
     to_cgs_i = lsun/(4.0 * np.pi * (pc*dist)**2)
-    nor = SB.normalize(logr=bfdict['log(R)_a'][0])*to_cgs_i
+    nor = SB.normalize(logr=bfdict['log(R)_p'][0])*to_cgs_i
     spec_f = spec_f*nor
     spec_f = spec_f*(speedoflight/((spec_w*1E-8)**2.0))
 
@@ -253,20 +261,16 @@ def mkphot(ax_phot=None,ax_flux=None,mod=None,data=None,bfdict=None):
     ax_phot.yaxis.set_label_position('right')
     # axSED.set_xticklabels([])
 
-def runstar(gaiaid=None,sampdir=None,cluster=None,version='V0',mgtriplet=False,**kwargs):
+def runstar(gaiaid=None,outputname=None, version='V0', **kwargs):
     verbose = kwargs.get('verbose',False)
 
-    # breakpoint()
     # grab data
-    # data = getdata()
-    data = getallh5(gaiaid=gaiaid, cluster=cluster)
-    filtarray = data['phot_filtarr']
+    data = getdataH5.getall(gaiaid=gaiaid)
+    filtarray = data['phot_filtarr']    
 
     specindex = kwargs.get('specindex',0)
 
     data['spec'] = data['spec'][specindex]
-
-    # breakpoint()
 
     # initialize prediction classes
     GM = GenMod()
@@ -276,9 +280,8 @@ def runstar(gaiaid=None,sampdir=None,cluster=None,version='V0',mgtriplet=False,*
         Cnnpath=None,
         NNtype=NNtype)
     GM._initphotnn(
-        filtarray,
+        data['phot_filtarr'],
         nnpath=photNN)
-    # breakpoint()
 
     # pull out some information about NNs
     specNN_labels = GM.PP.modpars
@@ -288,13 +291,13 @@ def runstar(gaiaid=None,sampdir=None,cluster=None,version='V0',mgtriplet=False,*
     genphotfn = GM.genphot
 
     # read in output file
-    if sampdir is None:
+    if outputname is None:
         # set the output file name
-        samplefile = f'./samples/samples_{version}.fits'
+        samplefile = f'./samples/samples_{gaiaid}_UTPsmes_{version}.fits'
     else:
         # set the output file name
-        samplefile = f'{sampdir}/samples_UTPbinary_{gaiaid}_{specindex}_{version}.fits'
-
+        samplefile = './samples/{}'.format(outputname)
+    
     samples = Table.read(samplefile,format='fits')
 
     bfdict = {}
@@ -304,37 +307,34 @@ def runstar(gaiaid=None,sampdir=None,cluster=None,version='V0',mgtriplet=False,*
     ####
     
     # make the spectral prediciton
-    # breakpoint()
     specpars_p = ([
-        bfdict['Teff_a'][0],bfdict['log(g)_a'][0],bfdict['[Fe/H]_a'][0],bfdict['[a/Fe]_a'][0],
-        bfdict['vrad_a'][0],bfdict['vstar_a'][0],bfdict['vmic_a'][0],bfdict['lsf'][0]])
+        bfdict['Teff_p'][0],bfdict['log(g)_p'][0],bfdict['[Fe/H]_p'][0],bfdict['[a/Fe]_p'][0],
+        bfdict['vrad_p'][0],bfdict['vstar_p'][0],bfdict['vmic_p'][0],bfdict['lsf'][0]])
     specpars_p += [bfdict[f'pc0'][0],bfdict[f'pc1'][0],bfdict[f'pc2'][0],bfdict[f'pc3'][0]]
-    # breakpoint()
     specmod_p = genspecfn(specpars_p,outwave=data['spec']['obs_wave'],modpoly=True)
-    # breakpoint()
     specmod_p = np.array(specmod_p[1])
 
     specpars_pn = ([
-        bfdict['Teff_a'][0],bfdict['log(g)_a'][0],bfdict['[Fe/H]_a'][0],bfdict['[a/Fe]_a'][0],
-        bfdict['vrad_a'][0],bfdict['vstar_a'][0],bfdict['vmic_a'][0],bfdict['lsf'][0]])
+        bfdict['Teff_p'][0],bfdict['log(g)_p'][0],bfdict['[Fe/H]_p'][0],bfdict['[a/Fe]_p'][0],
+        bfdict['vrad_p'][0],bfdict['vstar_p'][0],bfdict['vmic_p'][0],bfdict['lsf'][0]])
     specpars_pn += [1.0,0.0]
     specmod_pn = genspecfn(specpars_pn,outwave=data['spec']['obs_wave'],modpoly=True)
     specmod_pn = np.array(specmod_pn[1])
 
 
     specpars_s = ([
-        bfdict['Teff_b'][0],bfdict['log(g)_b'][0],bfdict['[Fe/H]_b'][0],bfdict['[a/Fe]_b'][0],
-        bfdict['vrad_b'][0],bfdict['vstar_b'][0],bfdict['vmic_b'][0],bfdict['lsf'][0]])
+        bfdict['Teff_s'][0],bfdict['log(g)_s'][0],bfdict['[Fe/H]_s'][0],bfdict['[a/Fe]_s'][0],
+        bfdict['vrad_s'][0],bfdict['vstar_s'][0],bfdict['vmic_s'][0],bfdict['lsf'][0]])
     specpars_s += [1.0,0.0]
     specmod_s = genspecfn(specpars_s,outwave=data['spec']['obs_wave'],modpoly=True)
     specmod_s = np.array(specmod_s[1])
 
-    radius_a = 10.0**bfdict['log(R)_a'][0]
-    radius_b = 10.0**bfdict['log(R)_b'][0]
+    radius_p = 10.0**bfdict['log(R)_p'][0]
+    radius_s = 10.0**bfdict['log(R)_s'][0]
 
     R = (
-        (planck(data['spec']['obs_wave'],bfdict['Teff_a'][0]) * radius_a**2.0) / 
-        (planck(data['spec']['obs_wave'],bfdict['Teff_b'][0]) * radius_b**2.0)
+        (planck(data['spec']['obs_wave'],bfdict['Teff_p'][0]) * radius_p**2.0) / 
+        (planck(data['spec']['obs_wave'],bfdict['Teff_s'][0]) * radius_s**2.0)
          )
     specmod_est = (specmod_p + R * specmod_s) / (1.0 + R)
 
@@ -344,14 +344,14 @@ def runstar(gaiaid=None,sampdir=None,cluster=None,version='V0',mgtriplet=False,*
 
     # make photometry prediction
     photpars_p = ([
-        bfdict['Teff_a'][0],bfdict['log(g)_a'][0],bfdict['[Fe/H]_a'][0],bfdict['[a/Fe]_a'][0],
-        bfdict['log(R)_a'][0],bfdict['dist'][0],bfdict['Av'][0],3.1])
+        bfdict['Teff_p'][0],bfdict['log(g)_p'][0],bfdict['[Fe/H]_p'][0],bfdict['[a/Fe]_p'][0],
+        bfdict['log(R)_p'][0],bfdict['dist'][0],bfdict['Av'][0],3.1])
     photmod_p = genphotfn(photpars_p)
     photmod_p = [photmod_p[xx] for xx in filtarray]
 
     photpars_s = ([
-        bfdict['Teff_b'][0],bfdict['log(g)_b'][0],bfdict['[Fe/H]_b'][0],bfdict['[a/Fe]_b'][0],
-        bfdict['log(R)_b'][0],bfdict['dist'][0],bfdict['Av'][0],3.1])
+        bfdict['Teff_s'][0],bfdict['log(g)_s'][0],bfdict['[Fe/H]_s'][0],bfdict['[a/Fe]_s'][0],
+        bfdict['log(R)_s'][0],bfdict['dist'][0],bfdict['Av'][0],3.1])
     photmod_s = genphotfn(photpars_s)
     photmod_s = [photmod_s[xx] for xx in filtarray]
 
@@ -365,56 +365,51 @@ def runstar(gaiaid=None,sampdir=None,cluster=None,version='V0',mgtriplet=False,*
     parstr = 'GaiaDR3 ID = {}\n'.format(gaiaid)
     parstr += r'GaiaDR3 $\pi$' + ' = {0:.3f} +/- {1:.3f} mas\n'.format(*data['parallax'])
     parstr += '--- Primary --- \n'
-    parstr += r'T$_{eff}$' + ' = {0:.0f} +/- {1:.0f} K\n'.format(*bfdict['Teff_a'])
-    parstr += r'log(g)'      + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['log(g)_a'])
-    parstr += r'V$_{mic}$'   + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vmic_a'])
-    parstr += r'V$_{\bigstar}$' + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vstar_a'])
-    parstr += r'V$_{RV}$' + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vrad_a'])
+    parstr += r'T$_{eff}$' + ' = {0:.0f} +/- {1:.0f} K\n'.format(*bfdict['Teff_p'])
+    parstr += r'log(g)'      + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['log(g)_p'])
+    parstr += r'V$_{mic}$'   + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vmic_p'])
+    parstr += r'V$_{\bigstar}$' + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vstar_p'])
+    parstr += r'V$_{RV}$' + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vrad_p'])
     parstr += '--- Secondary --- \n'
-    parstr += r'T$_{eff}$' + ' = {0:.0f} +/- {1:.0f} K\n'.format(*bfdict['Teff_b'])
-    parstr += r'log(g)'      + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['log(g)_b'])
-    parstr += r'V$_{mic}$'   + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vmic_b'])
-    parstr += r'V$_{\bigstar}$' + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vstar_b'])
-    parstr += r'V$_{RV}$' + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vrad_b'])
+    parstr += r'T$_{eff}$' + ' = {0:.0f} +/- {1:.0f} K\n'.format(*bfdict['Teff_s'])
+    parstr += r'log(g)'      + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['log(g)_s'])
+    parstr += r'V$_{mic}$'   + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vmic_s'])
+    parstr += r'V$_{\bigstar}$' + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vstar_s'])
+    parstr += r'V$_{RV}$' + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vrad_s'])
     parstr += '--- System --- \n'
-    parstr += r'[Fe/H]'      + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['[Fe/H]_a'])
-    parstr += r'[a/Fe]'      + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['[a/Fe]_a'])
+    parstr += r'[Fe/H]'      + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['[Fe/H]_p'])
+    parstr += r'[a/Fe]'      + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['[a/Fe]_p'])
     parstr += r'Dist'        + ' = {0:.1f} +/- {1:.1f} pc \n'.format(*bfdict['dist'])
     parstr += r'A$_{V}$'     + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['Av'])
-    parstr += r'$q$'     + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['mass_ratio'])
-    parstr += r'V$_{RV}$'     + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['vrad_sys'])
-
+    
     # define output file
-    outputname = f'UTPbinary_{gaiaid}_{specindex}_{version}'
-    outfile = f'./plots/compmod_{outputname}.pdf'
+    outfile = f'./plots/compmod_{gaiaid}_sviTPsmes_{version}.pdf'
 
     with PdfPages(outfile) as pdf:
-
+            
         ##### Make model comparison plot #####
-
+    
         fig = plt.figure(figsize=(10,8))#,constrained_layout=True)
         gs = gridspec.GridSpec(6, 6, figure=fig)
         gs.update(hspace=0.05)
-
+        
         ax_main_spec  = fig.add_subplot(gs[:3,:-2])
         ax_main_resid = fig.add_subplot(gs[3:4,:-2])
 
         # ax_reg1_spec = fig.add_subplot(gs[4:,:2])
         # ax_reg2_spec = fig.add_subplot(gs[4:,2:4])
 
+        mkspec(ax_spec=ax_main_spec,ax_resid=ax_main_resid,
+               waverange=None,mod=[data['spec']['obs_wave'],specmod_est],
+               pmod=[data['spec']['obs_wave'],specmod_pn],
+               smod=[data['spec']['obs_wave'],specmod_s],
+               data=data['spec'],labelx=True)
 
-        if mgtriplet:
-            mkspec(ax_spec=ax_main_spec,ax_resid=None,
-                   waverange=[5160,5190],mod=[data['spec']['obs_wave'],specmod_est],
-                   pmod=[data['spec']['obs_wave'],specmod_pn],
-                   smod=[data['spec']['obs_wave'],specmod_s],
-                   data=data['spec'],labelx=True)
-        else:
-            mkspec(ax_spec=ax_main_spec,ax_resid=ax_main_resid,
-                   waverange=None,mod=[data['spec']['obs_wave'],specmod_est],
-                   pmod=[data['spec']['obs_wave'],specmod_pn],
-                   smod=[data['spec']['obs_wave'],specmod_s],
-                   data=data['spec'],labelx=True)
+        # mkspec(ax_spec=ax_reg1_spec,ax_resid=None,
+        #        waverange=[5160,5180],mod=[data['spec']['obs_wave'],specmod_est],
+        #        pmod=[data['spec']['obs_wave'],specmod_pn],
+        #        smod=[data['spec']['obs_wave'],specmod_s],
+        #        data=data['spec'],labelx=False)
 
         # mkspec(ax_spec=ax_reg2_spec,ax_resid=None,
         #        waverange=[5260,5272],mod=[data['spec']['obs_wave'],specmod_est],
@@ -447,21 +442,20 @@ def runstar(gaiaid=None,sampdir=None,cluster=None,version='V0',mgtriplet=False,*
             bfdict['parallax'] = [np.nanmedian(samples['parallax']),np.nanstd(samples['parallax'])]
 
         # list of parameters to include in corner plot        
-        #pltpars_i = [
-        #    'Teff_a','log(g)_a','[Fe/H]_a','[a/Fe]_a','vmic_a','vstar_a',
-        #    'Teff_b','log(g)_b','vmic_b','vstar_b','specjitter',
-        #    'photjitter','dist','parallax','log(R)_a','log(R)_b','Av',
-        #    ]
         # pltpars_i = [
-        #     'Teff_a','log(g)_a','Teff_b','log(g)_b',
-        #     'vstar_a','vstar_b','[Fe/H]_a',
+        #     'Teff_p','log(g)_p','[Fe/H]_p','[a/Fe]_p','vmic_p','vstar_p',
+        #     'Teff_s','log(g)_s','vmic_s','vstar_s','specjitter',
+        #     'photjitter','dist','parallax','log(R)_p','log(R)_s','Av',
+        #     ]
+        # pltpars_i = [
+        #     'Teff_p','log(g)_p','Teff_s','log(g)_s',
+        #     'vstar_p','vstar_s','[Fe/H]_p',
         #     ]
         pltpars_i = [
-            'Teff_a','log(g)_a','[Fe/H]_a','[a/Fe]_a','vmic_a','vstar_a','vrad_a',
-            'Teff_b','log(g)_b','vmic_b','vstar_b','vrad_b',
-            'mass_ratio', 'vrad_sys',
+            'Teff_p','log(g)_p','[Fe/H]_p','[a/Fe]_p','vmic_p','vstar_p','vrad_p',
+            'Teff_s','log(g)_s','vmic_s','vstar_s','vrad_s',
             'lsf','pc0','pc1','pc2','pc3','specjitter',
-            'photjitter','dist','parallax','log(R)_a','log(R)_b','Av',
+            'photjitter','dist','parallax','log(R)_p','log(R)_s','Av',
             ]
 
         # check to see if any of these parameters have been fixed
@@ -475,10 +469,10 @@ def runstar(gaiaid=None,sampdir=None,cluster=None,version='V0',mgtriplet=False,*
 
         gaia_parallax = data['parallax']
 
-        fig = plt.figure(figsize=(20,20))
+        fig = plt.figure(figsize=(15,15))
         # fig = plt.figure(figsize=(8,8))
         gs = gridspec.GridSpec(len(pltpars),len(pltpars))
-        gs.update(wspace=0.15,hspace=0.15)
+        gs.update(wspace=0.05,hspace=0.05)
 
         fig.text(
             0.75, 0.35, 
@@ -633,20 +627,20 @@ def runstar(gaiaid=None,sampdir=None,cluster=None,version='V0',mgtriplet=False,*
                 if 'Teff' in kk[0]:
                     ax.text(
                         0.5,1.1,
-                        '{0:.0f} +/- {1:.0f}'.format(*bfdict[kk[0]]),
+                        '{0:.0f} +/ {1:.0f}'.format(*bfdict[kk[0]]),
                         horizontalalignment='center',
                         verticalalignment='center', 
                         transform=ax.transAxes,
-                        fontsize=10,
+                        fontsize=6,
                     )
                 else:
                     ax.text(
                         0.5,1.1,
-                        '{0:.3f} +/- {1:.3f}'.format(*bfdict[kk[0]]),
+                        '{0:.2f} +/ {1:.2f}'.format(*bfdict[kk[0]]),
                         horizontalalignment='center',
                         verticalalignment='center', 
                         transform=ax.transAxes,
-                        fontsize=8,
+                        fontsize=6,
                     )
 
 
@@ -690,7 +684,7 @@ def runstar(gaiaid=None,sampdir=None,cluster=None,version='V0',mgtriplet=False,*
             else:
                 if kk[0] == '[a/Fe]':
                     ax.set_ylabel('['+r'$\alpha$'+'/Fe]')
-                elif kk[0] == '[Fe/H]_a':
+                elif kk[0] == '[Fe/H]_p':
                     ax.set_ylabel('[Fe/H]')
                 elif kk[0] == 'Teff':
                     ax.set_xlabel(r'T$_{eff}$')
@@ -698,10 +692,10 @@ def runstar(gaiaid=None,sampdir=None,cluster=None,version='V0',mgtriplet=False,*
                     ax.set_ylabel(r'V$_{rad}$')
                 elif kk[0] == 'vmic':
                     ax.set_ylabel(r'V$_{mic}$')
-                elif kk[0] == 'vstar_a':
-                    ax.set_ylabel(r'V$_{\bigstar}$'+'_a')
-                elif kk[0] == 'vstar_b':
-                    ax.set_ylabel(r'V$_{\bigstar}$'+'_b')
+                elif kk[0] == 'vstar_p':
+                    ax.set_ylabel(r'V$_{\bigstar}$'+'_p')
+                elif kk[0] == 'vstar_s':
+                    ax.set_ylabel(r'V$_{\bigstar}$'+'_s')
                 elif kk[0] == 'parallax':
                     ax.set_ylabel(r'$\pi$')
                 elif 'pc' in kk[0]:
@@ -722,26 +716,20 @@ def runstar(gaiaid=None,sampdir=None,cluster=None,version='V0',mgtriplet=False,*
             else:
                 if kk[1] == '[a/Fe]':
                     ax.set_xlabel('['+r'$\alpha$'+'/Fe]')
-                elif kk[1] == '[Fe/H]_a':
+                elif kk[1] == '[Fe/H]_p':
                     ax.set_xlabel('[Fe/H]')
                 elif kk[1] == 'Teff':
                     ax.set_xlabel(r'T$_{eff}$'+'\n[K]')
                 elif kk[1] == 'dist':
                     ax.set_xlabel('Dist.'+'\n[kpc]')
-                elif kk[1] == 'vrad_a':
-                    ax.set_xlabel(r'V$_{rad,A}$'+'\n[km/s]')
-                elif kk[1] == 'vrad_b':
-                    ax.set_xlabel(r'V$_{rad,B}$'+'\n[km/s]')
-                elif kk[1] == 'mass_ratio':
-                    ax.set_xlabel(r'$q$')
-                elif kk[1] == 'vrad_sys':
-                    ax.set_xlabel(r'V$_{rad,sys}$'+'\n[km/s]')
+                elif kk[1] == 'vrad':
+                    ax.set_xlabel(r'V$_{rad}$'+'\n[km/s]')
                 elif kk[1] == 'vmic':
                     ax.set_xlabel(r'V$_{mic}$'+'\n[km/s]')
-                elif kk[1] == 'vstar_a':
-                    ax.set_xlabel(r'V$_{\bigstar}$'+'_a'+'\n[km/s]')
-                elif kk[1] == 'vstar_b':
-                    ax.set_xlabel(r'V$_{\bigstar}$'+'_b'+'\n[km/s]')
+                elif kk[1] == 'vstar_p':
+                    ax.set_xlabel(r'V$_{\bigstar}$'+'_p'+'\n[km/s]')
+                elif kk[1] == 'vstar_s':
+                    ax.set_xlabel(r'V$_{\bigstar}$'+'_s'+'\n[km/s]')
                 elif kk[1] == 'parallax':
                     ax.set_xlabel(r'$\pi$'+'\n["]')
                 elif kk[1] == 'photjitter':
@@ -764,12 +752,10 @@ def runstar(gaiaid=None,sampdir=None,cluster=None,version='V0',mgtriplet=False,*
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--sampdir',help='path for directory where samples are stored',type=str,default=None)
+    parser.add_argument('--gaiaid','-i',dest='gaiaid',help='gaia id for star',default=None,type=int)
+    parser.add_argument('--specindex','-si',dest='specindex',help='index of spectrum for given star',default=0,type=int)
+    parser.add_argument('--outputname',help='path for directory where samples are be stored',type=str,default=None)
     parser.add_argument('--version','-v',help='analysis run version number',type=str,default='V0')
-    parser.add_argument('--cluster',help='name of binary host cluster',type=str,default=None)
-    parser.add_argument('--gaiaid','-i',help='gaiaid of binary',type=int, default=None)
-    parser.add_argument('--specindex','-si',help='index of spectrum', type=int,default=None)
-    parser.add_argument('--mgtriplet',help='focus spectrum around Mg I triplet',dest='mgtriplet',action='store_true',default=False)
 
     args = parser.parse_args()
     runstar(**vars(args))    
