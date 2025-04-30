@@ -58,29 +58,29 @@ def mkspec(ax_spec=None,ax_resid=None,
            labely=True):
     
     if waverange != None:
-        cond = (data['obs_wave'] >= waverange[0]-10.0) & (data['obs_wave'] <= waverange[1]+10)
-        obs_wave  = data['obs_wave'][cond]
-        obs_flux  = data['obs_flux'][cond]
-        obs_eflux = data['obs_eflux'][cond]
+        # cond = (data['obs_wave'] >= waverange[0]-10.0) & (data['obs_wave'] <= waverange[1]+10)
+        obs_wave  = data['obs_wave'] #[cond]
+        obs_flux  = data['obs_flux'] #[cond]
+        obs_eflux = data['obs_eflux'] #[cond]
     else:
         obs_wave  = data['obs_wave']
         obs_flux  = data['obs_flux']
         obs_eflux = data['obs_eflux']
         waverange = [obs_wave.min(),obs_wave.max()]
         
-    ax_spec.plot(obs_wave,obs_flux,ls='-',lw=0.25,c='k',zorder=0)
-    ax_spec.plot(mod[0],mod[1],ls='-',lw=0.5,c='C3',alpha=1.0,zorder=1)
+    ax_spec.plot(obs_wave,obs_flux,ls='-',lw=0.5,c='k',zorder=0)
+    ax_spec.plot(mod[0],mod[1],ls='-',lw=1.0,c='C3',alpha=1.0,zorder=1)
 
     if pmod != None:
-         ax_spec.plot(pmod[0],pmod[1],ls='-',lw=0.5,c='C0',alpha=0.5,zorder=1)
+         ax_spec.plot(pmod[0],pmod[1],ls='-',lw=1.0,c='C0',alpha=0.5,zorder=1)
     if smod != None:
-         ax_spec.plot(smod[0],smod[1],ls='-',lw=0.5,c='C1',alpha=0.5,zorder=1)
+         ax_spec.plot(smod[0],smod[1],ls='-',lw=1.0,c='C1',alpha=0.5,zorder=1)
         
 
     if ax_resid != None:
         ax_resid.plot(obs_wave,
                     (mod[1]-obs_flux)/obs_eflux,
-                    ls='-',lw=0.5,c='k',alpha=1.0)
+                    ls='-',lw=1.0,c='k',alpha=1.0)
 
     ax_spec.set_xlim(waverange[0],waverange[1])
     if labely:
@@ -108,7 +108,7 @@ def mkphot(ax_phot=None,ax_flux=None,mod=None,data=None,bfdict=None):
     dist = bfdict['dist'][0]*1000.0
 
     sedstr = (
-        'GaiaEDR3 G = {0:.2f}'.format(photdata['GaiaEDR3_G'][0])
+        'GaiaDR3 G = {0:.2f}'.format(photdata['GaiaDR3_G'][0])
         )
     if 'PS_g' in photdata.keys():
         sedstr += '\n PS g = {0:.2f}'.format(photdata['PS_g'][0])
@@ -190,7 +190,7 @@ def mkphot(ax_phot=None,ax_flux=None,mod=None,data=None,bfdict=None):
     fc        = [filtercurves[kk] for kk in sedoutkeys]
     obsmag    = np.array([initphot[kk] for kk in sedoutkeys if kk in photbands])
     obsmagerr = np.array([initphoterr[kk] for kk in sedoutkeys if kk in photbands])
-    modmag    = np.array([initphot[kk] for kk in sedoutkeys if kk in photbands])
+    # modmag    = np.array([initphot[kk] for kk in sedoutkeys if kk in photbands])
     # modmag    = np.array([sedout[kk] for kk in sedoutkeys])
     obsflux_i = np.array([zeropts[kk]*10.0**(initphot[kk]/-2.5) for kk in sedoutkeys if kk in photbands])
     obsflux   = [x*(jansky_cgs)*(speedoflight/((lamb*1E-8)**2.0)) for x,lamb in zip(obsflux_i,obswave)]
@@ -391,8 +391,8 @@ def runstar(gaiaid=None,sampdir=None,cluster=None,version='V0',mgtriplet=False,*
 
 
         if mgtriplet:
-            mkspec(ax_spec=ax_main_spec,ax_resid=None,
-                   waverange=[5160,5190],mod=[data['spec']['obs_wave'],specmod_est],
+            mkspec(ax_spec=ax_main_spec,ax_resid=ax_main_resid,
+                   waverange=[np.amin(data['spec']['obs_wave']),5190],mod=[data['spec']['obs_wave'],specmod_est],
                    pmod=[data['spec']['obs_wave'],specmod_pn],
                    smod=[data['spec']['obs_wave'],specmod_s],
                    data=data['spec'],labelx=True)
