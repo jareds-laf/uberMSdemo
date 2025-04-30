@@ -213,8 +213,8 @@ def mkphot(ax_phot=None,ax_flux=None,mod=None,data=None,bfdict=None):
                  maxobsflx = np.log10(f)
 
     for w,m,me,mod,s,clr in zip(obswave,obsmag,obsmagerr,modmag,fitsym,fitcol):
-        if np.abs(m-mod)/me > 5.0:
-            me = np.abs(m-mod)
+        # if np.abs(m-mod)/me > 5.0:
+        #     me = np.abs(m-mod)
         if (m < 30) & (m > -30):
             ax_phot.scatter(w/1E+4,mod,marker='o',c='C3',zorder=1,s=5)
             ax_phot.errorbar(w/1E+4,m,yerr=me,ls='',marker=',',c='k',zorder=-1)
