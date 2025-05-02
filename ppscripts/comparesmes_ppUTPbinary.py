@@ -355,22 +355,42 @@ def runstar(gaiaid=None,sampdir=None,cluster=None,version='V0',mgtriplet=False,*
     parstr = 'GaiaDR3 ID = {}\n'.format(gaiaid)
     parstr += r'GaiaDR3 $\pi$' + ' = {0:.3f} +/- {1:.3f} mas\n'.format(*data['parallax'])
     parstr += '--- Primary --- \n'
-    parstr += r'T$_{eff}$' + ' = {0:.0f} +/- {1:.0f} K\n'.format(*bfdict['Teff_a'])
-    parstr += r'log(g)'      + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['log(g)_a'])
-    parstr += r'V$_{mic}$'   + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vmic_a'])
-    parstr += r'V$_{\bigstar}$' + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vstar_a'])
-    parstr += r'V$_{RV}$' + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vrad_a'])
+    parstr += r'T$_{eff}$' + r' = ${0:.0f}_{{-{1:.0f}}}^{{+{2:.0f}}}$ K'.format(bfdict["Teff_a"][0], bfdict["Teff_a"][2], bfdict["Teff_a"][3]) + '\n'
+    parstr += r'$\log{(g)}$' + r' = ${0:.3f}_{{-{1:.3f}}}^{{+{2:.3f}}}$'.format(bfdict["log(g)_a"][0], bfdict["log(g)_a"][2], bfdict["log(g)_a"][3]) + '\n'
+    parstr += r'V$_{\bigstar}$' + r' = ${0:.3f}_{{-{1:.3f}}}^{{+{2:.3f}}}$ km/s'.format(bfdict["vstar_a"][0], bfdict["vstar_a"][2], bfdict["vstar_a"][3]) + '\n'
+    parstr += r'V$_{mic}$' + r' = ${0:.3f}_{{-{1:.3f}}}^{{+{2:.3f}}}$ km/s'.format(bfdict["vmic_a"][0], bfdict["vmic_a"][2], bfdict["vmic_a"][3]) + '\n'
+    parstr += r'V$_{RV}$' + r' = ${0:.3f}_{{-{1:.3f}}}^{{+{2:.3f}}}$ km/s'.format(bfdict["vrad_a"][0], bfdict["vrad_a"][2], bfdict["vrad_a"][3]) + '\n'
     parstr += '--- Secondary --- \n'
-    parstr += r'T$_{eff}$' + ' = {0:.0f} +/- {1:.0f} K\n'.format(*bfdict['Teff_b'])
-    parstr += r'log(g)'      + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['log(g)_b'])
-    parstr += r'V$_{mic}$'   + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vmic_b'])
-    parstr += r'V$_{\bigstar}$' + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vstar_b'])
-    parstr += r'V$_{RV}$' + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vrad_b'])
+    parstr += r'T$_{eff}$' + r' = ${0:.0f}_{{-{1:.0f}}}^{{+{2:.0f}}}$ K'.format(bfdict["Teff_b"][0], bfdict["Teff_b"][2], bfdict["Teff_b"][3]) + '\n'
+    parstr += r'$\log{(g)}$' + r' = ${0:.3f}_{{-{1:.3f}}}^{{+{2:.3f}}}$'.format(bfdict["log(g)_b"][0], bfdict["log(g)_b"][2], bfdict["log(g)_b"][3]) + '\n'
+    parstr += r'V$_{\bigstar}$' + r' = ${0:.3f}_{{-{1:.3f}}}^{{+{2:.3f}}}$ km/s'.format(bfdict["vstar_b"][0], bfdict["vstar_b"][2], bfdict["vstar_b"][3]) + '\n'
+    parstr += r'V$_{mic}$' + r' = ${0:.3f}_{{-{1:.3f}}}^{{+{2:.3f}}}$ km/s'.format(bfdict["vmic_b"][0], bfdict["vmic_b"][2], bfdict["vmic_b"][3]) + '\n'
+    parstr += r'V$_{RV}$' + r' = ${0:.3f}_{{-{1:.3f}}}^{{+{2:.3f}}}$ km/s'.format(bfdict["vrad_b"][0], bfdict["vrad_b"][2], bfdict["vrad_b"][3]) + '\n'
     parstr += '--- System --- \n'
-    parstr += r'[Fe/H]'      + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['[Fe/H]_a'])
-    parstr += r'[a/Fe]'      + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['[a/Fe]_a'])
-    parstr += r'Dist'        + ' = {0:.1f} +/- {1:.1f} pc \n'.format(*bfdict['dist'])
-    parstr += r'A$_{V}$'     + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['Av'])
+    parstr += r'[Fe/H]'      + r' = ${0:.3f}_{{-{1:.3f}}}^{{+{2:.3f}}}$'.format(*bfdict['[Fe/H]_a']) + '\n'
+    parstr += r'[a/Fe]'      + r' = ${0:.3f}_{{-{1:.3f}}}^{{+{2:.3f}}}$'.format(*bfdict['[a/Fe]_a']) + '\n'
+    parstr += r'Dist'        + r' = ${0:.3f}_{{-{1:.3f}}}^{{+{2:.3f}}}$ pc'.format(*bfdict['dist']) + '\n'
+    parstr += r'A$_{V}$'     + r' = ${0:.3f}_{{-{1:.3f}}}^{{+{2:.3f}}}$'.format(*bfdict['Av']) + '\n'
+
+    # parstr = 'GaiaDR3 ID = {}\n'.format(gaiaid)
+    # parstr += r'GaiaDR3 $\pi$' + ' = {0:.3f} +/- {1:.3f} mas\n'.format(*data['parallax'])
+    # parstr += '--- Primary --- \n'
+    # parstr += r'T$_{eff}$' + ' = {0:.0f} +/- {1:.0f} K\n'.format(*bfdict['Teff_a'])
+    # parstr += r'log(g)'      + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['log(g)_a'])
+    # parstr += r'V$_{mic}$'   + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vmic_a'])
+    # parstr += r'V$_{\bigstar}$' + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vstar_a'])
+    # parstr += r'V$_{RV}$' + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vrad_a'])
+    # parstr += '--- Secondary --- \n'
+    # parstr += r'T$_{eff}$' + ' = {0:.0f} +/- {1:.0f} K\n'.format(*bfdict['Teff_b'])
+    # parstr += r'log(g)'      + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['log(g)_b'])
+    # parstr += r'V$_{mic}$'   + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vmic_b'])
+    # parstr += r'V$_{\bigstar}$' + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vstar_b'])
+    # parstr += r'V$_{RV}$' + ' = {0:.3f} +/- {1:.3f} km/s\n'.format(*bfdict['vrad_b'])
+    # parstr += '--- System --- \n'
+    # parstr += r'[Fe/H]'      + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['[Fe/H]_a'])
+    # parstr += r'[a/Fe]'      + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['[a/Fe]_a'])
+    # parstr += r'Dist'        + ' = {0:.1f} +/- {1:.1f} pc \n'.format(*bfdict['dist'])
+    # parstr += r'A$_{V}$'     + ' = {0:.3f} +/- {1:.3f} \n'.format(*bfdict['Av'])
 
     # define output file
     outfile = f'./plots/compmod_UTPcomparesmes_{gaiaid}_{specindex}_{version}.pdf'
