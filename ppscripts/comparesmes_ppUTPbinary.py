@@ -292,7 +292,8 @@ def runstar(gaiaid=None,sampdir=None,cluster=None,version='V0',mgtriplet=False,*
 
     bfdict = {}
     for kk in samples.keys():
-        bfdict[kk] = [np.median(samples[kk]),np.std(samples[kk])]
+        median = np.median(samples[kk])
+        bfdict[kk] = [median, np.std(samples[kk]), median - np.quantile(samples[kk], 0.16), np.quantile(samples[kk], 0.84) - median]
 
     ####
     
