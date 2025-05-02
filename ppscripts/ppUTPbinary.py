@@ -70,13 +70,13 @@ def mkspec(ax_spec=None,ax_resid=None,
         obs_eflux = data['obs_eflux']
         waverange = [obs_wave.min(),obs_wave.max()]
         
-    ax_spec.plot(obs_wave,obs_flux,ls='-',lw=0.25,c='k',zorder=0)
-    ax_spec.plot(mod[0],mod[1],ls='-',lw=0.5,c='C3',alpha=1.0,zorder=1)
+    ax_spec.plot(obs_wave,obs_flux,ls='-',lw=0.75,c='k',zorder=0)
+    ax_spec.plot(mod[0],mod[1],ls='-',lw=0.75,c='C3',alpha=1.0,zorder=1)
 
     if pmod != None:
-         ax_spec.plot(pmod[0],pmod[1],ls='-',lw=0.5,c='C0',alpha=0.5,zorder=1)
+         ax_spec.plot(pmod[0],pmod[1],ls='-',lw=0.75,c='C0',alpha=0.5,zorder=1)
     if smod != None:
-         ax_spec.plot(smod[0],smod[1],ls='-',lw=0.5,c='C1',alpha=0.5,zorder=1)
+         ax_spec.plot(smod[0],smod[1],ls='-',lw=0.75,c='C1',alpha=0.5,zorder=1)
         
 
     if ax_resid != None:
@@ -694,10 +694,18 @@ def runstar(gaiaid=None,sampdir=None,cluster=None,version='V0',mgtriplet=False,*
                     ax.set_ylabel('['+r'$\alpha$'+'/Fe]')
                 elif kk[0] == '[Fe/H]_a':
                     ax.set_ylabel('[Fe/H]')
-                elif kk[0] == 'Teff':
-                    ax.set_xlabel(r'T$_{eff}$')
-                elif kk[0] == 'vrad':
-                    ax.set_ylabel(r'V$_{rad}$')
+                # elif kk[0] == 'Teff':
+                #     ax.set_xlabel(r'T$_{eff}$')
+                elif kk[1] == 'Teff_a':
+                    ax.set_xlabel(r'T$_{eff,A}$'+'\n[K]')
+                elif kk[1] == 'Teff_b':
+                    ax.set_xlabel(r'T$_{eff,B}$'+'\n[K]')
+                # elif kk[0] == 'vrad':
+                #     ax.set_ylabel(r'V$_{rad}$')
+                elif kk[1] == 'vrad_a':
+                    ax.set_xlabel(r'V$_{rad,A}$'+'\n[km/s]')
+                elif kk[1] == 'vrad_b':
+                    ax.set_xlabel(r'V$_{rad,B}$'+'\n[km/s]')
                 elif kk[0] == 'vmic':
                     ax.set_ylabel(r'V$_{mic}$')
                 elif kk[0] == 'vstar_a':
@@ -726,8 +734,10 @@ def runstar(gaiaid=None,sampdir=None,cluster=None,version='V0',mgtriplet=False,*
                     ax.set_xlabel('['+r'$\alpha$'+'/Fe]')
                 elif kk[1] == '[Fe/H]_a':
                     ax.set_xlabel('[Fe/H]')
-                elif kk[1] == 'Teff':
-                    ax.set_xlabel(r'T$_{eff}$'+'\n[K]')
+                elif kk[1] == 'Teff_a':
+                    ax.set_xlabel(r'T$_{eff,A}$'+'\n[K]')
+                elif kk[1] == 'Teff_b':
+                    ax.set_xlabel(r'T$_{eff,B}$'+'\n[K]')
                 elif kk[1] == 'dist':
                     ax.set_xlabel('Dist.'+'\n[kpc]')
                 elif kk[1] == 'vrad_a':

@@ -68,19 +68,19 @@ def mkspec(ax_spec=None,ax_resid=None,
         obs_eflux = data['obs_eflux']
         waverange = [obs_wave.min(),obs_wave.max()]
         
-    ax_spec.plot(obs_wave,obs_flux,ls='-',lw=0.5,c='k',zorder=0)
-    ax_spec.plot(mod[0],mod[1],ls='-',lw=1.0,c='C3',alpha=1.0,zorder=1)
+    ax_spec.plot(obs_wave,obs_flux,ls='-',lw=0.75,c='k',zorder=0)
+    ax_spec.plot(mod[0],mod[1],ls='-',lw=0.75,c='C3',alpha=1.0,zorder=1)
 
     if pmod != None:
-         ax_spec.plot(pmod[0],pmod[1],ls='-',lw=1.0,c='C0',alpha=0.5,zorder=1)
+         ax_spec.plot(pmod[0],pmod[1],ls='-',lw=0.75,c='C0',alpha=0.5,zorder=1)
     if smod != None:
-         ax_spec.plot(smod[0],smod[1],ls='-',lw=1.0,c='C1',alpha=0.5,zorder=1)
+         ax_spec.plot(smod[0],smod[1],ls='-',lw=0.75,c='C1',alpha=0.5,zorder=1)
         
 
     if ax_resid != None:
         ax_resid.plot(obs_wave,
                     (mod[1]-obs_flux)/obs_eflux,
-                    ls='-',lw=1.0,c='k',alpha=1.0)
+                    ls='-',lw=0.5,c='k',alpha=1.0)
 
     ax_spec.set_xlim(waverange[0],waverange[1])
     if labely:

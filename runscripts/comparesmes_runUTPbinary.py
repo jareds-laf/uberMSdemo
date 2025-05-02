@@ -128,7 +128,7 @@ def runTP(gaiaid=None,dospec=True,dophot=True,outputname=None,progressbar=True,v
         # indict['priors'][f'vstar_{kk}'] = ['uniform',[0.0,250.0]]
         indict['priors'][f'vstar_{kk}'] = ['tnormal',[0.0,4.0,0.0,50.0]]
         indict['priors'][f'vmic_{kk}']  = ['uniform',[0.5,2.0]]
-        indict['priors'][f'vrad_{kk}']  = ['uniform',[RVest-100.0,RVest+100.0]]
+        indict['priors'][f'vrad_{kk}']  = ['uniform',[-100.0,100.0]]
         # if kk == 'a':
         #     indict['priors'][f'vrad_{kk}']  = ['uniform',[-50.0,50.0]]
         # else:
