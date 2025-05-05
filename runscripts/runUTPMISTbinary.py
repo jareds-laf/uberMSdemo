@@ -1,3 +1,4 @@
+import uberMS_binary
 from uberMS_binary.binary import runSVI
 import numpy as np
 import argparse
@@ -6,101 +7,40 @@ import os
 import logging
 import h5py
 import astropy.io.ascii as at
+import getdataH5
 
 specNN = './models/specNN/modV0_spec_LinNet_R42K_WL510_535_wvt.h5'
 photNN = './models/photNN/'
 NNtype = 'LinNet'
 mistNN = './models/mistNN/mistyNN_2.3_v256_v0.h5'
 
-def getdata():
-    # read in observed spectrum
-    hecto_dir = os.path.expanduser("/data/labs/douglaslab/sofairj/data/hectochelle_rereduction")
-    hecto_filename = os.path.join(hecto_dir, "data_ngc6819_2010.0921_ngc6819_sep2010_1.7137.h5")
-    f = h5py.File(hecto_filename, 'r')
+print(f"uberMS_binary installation:\n{uberMS_binary.__file__}")
 
-    # 2080061393129929088 is the first star listed in the spectrum used here
-    # 2128158910811247488 is an SB2 whose components are separated in most spectra
-    # (data_ngc6811_2019.0516_hectochelle_NGC6811_2019b_1.8149.h5)
-    # 2076392838230907392 is another relevant SB2 in NGC 6819
-    target = str(2076392838230907392)
-    spec = Table([f[target]['wave'], f[target]['flux'],
-                  f[target]['eflux']],
-                  names=('wave', 'flux', 'eflux'))
-
-    # read in phot
-    # create table with photometry for every filter
-    phottab = f[target]['phot']
-
-    # get the filters
-    filtarr = phottab.keys()
-
-    phot = {}
-    # create a dict with {filter name: [flux magnitude, flux error]}
-    for i, filter in enumerate(filtarr):
-        # skip the PS_y filter because the NN is not trained on it
-        if filter != 'PS_y':
-            phot[filter] = [float(phottab[filter][0]),float(phottab[filter][1])]
-        else:
-            print(f'Skipping {filter} filter')
-
-    # Need to change the names of the Gaia EDR3 filters to DR3
-    # These filters are unchanged between EDR3 and DR3
-    phot['GaiaDR3_BP'] = phot.pop('GaiaEDR3_BP')
-    phot['GaiaDR3_RP'] = phot.pop('GaiaEDR3_RP')
-    phot['GaiaDR3_G'] = phot.pop('GaiaEDR3_G')
-
-
-    # read in MIST isochrone
-    iso = at.read("./data/MIST_iso_67e56fd8ac521.iso.cmd")
-
-    # filter out AGB/RGB stars so we're left with just main sequence stars
-    ms = (iso['EEP'] < 605) & (iso['log_g'] > 2.0)
-    iso = iso[ms]
-    print(f"Here is your iso in the getdata():\n{iso}")
-    # create out dict
-    out = {}
+def runTP(gaiaid=None,dospec=True,dophot=True,outputname=None,progressbar=True,version='V000',**kwargs):
+    if gaiaid == None:
+        print('user did not give a Gaia ID')
+        return
     
-    out['spec'] = {}
-    out['spec']['obs_wave'] = spec['wave']
-    out['spec']['obs_flux'] = spec['flux']
-    out['spec']['obs_eflux'] = spec['eflux']
-    
-    out['phot'] = {}
-
-    # for each filter, add the magnitude and error to the out dict
-    for kk in phot:
-        phot_i = phot[kk]
-        out['phot'][kk] = [phot_i[0],phot_i[1]]
-
-    out['iso'] = iso['log_Teff', 'log_g', 'initial_mass']
-    out['iso']['Teff'] = 10**out['iso']['log_Teff']
-    del(out['iso']['log_Teff'])
-    
-    out['parallax'] = [0.3341, 0.0214]
-    out['RVest'] = 2.5
-    out['Avest'] = 0.09
-
-    print(f'Just before printing, here is your out dict:\n{out}')
-
-    return out
-
-def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',**kwargs):
     if (dospec == False) & (dophot==False):
         print('User did not set either dospec and/or dophot, returning nothing')
         return 
 
     # grab data
-    data = getdata()
+    data = getdataH5.getall(gaiaid=gaiaid, cluster='ngc6819')
+
+    specindex = kwargs.get('specindex',0)
+
+    data['spec'] = data['spec'][specindex]
 
     # init input dictionary
     indict = {}
     
     if outputname is None:
         # set the output file name
-        indict['outfile'] = f'./samples/samples_demo_UTPsmes_{version}.fits'
+        indict['outfile'] = f'./samples/samples_UTPbinary_{gaiaid}_{kwargs.get("specindex",0)}_{version}.fits'
     else:
         # set the output file name
-        indict['outfile'] = './samples/{}'.format(outputname)
+        indict['outfile'] = './samples/{0}'.format(outputname)
     
     # add spec, phot, and parallax info into indict
     indict['data'] = {}
@@ -144,7 +84,6 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         print('Distance Range:')
         print('      dist = {0} - {1} pc'.format(distmin,distmax))
     
-    
     print('---- Isochrone ----')
     if 'iso' in indict.keys():
         print('Teff range: {0} - {1}'.format(min(indict['iso']['Teff']), max(indict['iso']['Teff'])))
@@ -174,7 +113,7 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         'M_b':0.8,
         'vrad_sys':RVest,
         'vrad_a':-10.0,
-        'vrad_b':10.0,
+        'vrad_b':-5.75,
         'vstar_a':1.0,
         'vstar_b':1.0,
         'vmic_a':1.0,
@@ -206,18 +145,22 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         # spectra priors
         # indict['priors'][f'vstar_{kk}'] = ['uniform',[0.0,250.0]]
         indict['priors'][f'vstar_{kk}'] = ['tnormal',[0.0,4.0,0.0,50.0]]
-        # indict['priors'][f'vmic_{kk}']  = ['uniform',[0.5,2.0]]
-        indict['priors'][f'vmic_{kk}']  = ['Bruntt2012','fixed']
+        indict['priors'][f'vmic_{kk}']  = ['uniform',[0.5,2.0]]
+        # indict['priors'][f'vrad_{kk}']  = ['uniform',[RVest-100.0,RVest+100.0]]
+        # indict['priors'][f'vmic_{kk}']  = ['Bruntt2012','fixed']
         # if kk == 'a':
-        #     indict['priors'][f'vrad_{kk}']  = ['uniform', [-500.0,500.0]]
+        #      indict['priors'][f'vrad_{kk}']  = ['uniform', [-500.0,500.0]]
         # else:
-        #     indict['priors'][f'vrad_{kk}']  = ['Wilson1941', 'fixed']
+        #      indict['priors'][f'vrad_{kk}']  = ['Wilson1941', 'fixed']
 
     # fix chemistry to be identical
     indict['priors']['binchem'] = ['binchem','fixed']
     
     # q-vrad priors
-    indict['priors']['q_vr'] = ['Milliman2014','fixed']
+    # indict['priors']['q_vr'] = ['Milliman2014','fixed']
+    indict['priors']['q_vr'] = ['RelaxedMilliman2014', 'fixed']
+    # indict['priors']['q_vr'] = ['dependent', 'fixed']
+    # indict['priors']['q_vr'] = ['independent', 'fixed']
     # indict['priors']['mass_ratio']  = ['uniform',[1e-5, 1.0]]
     # indict['priors']['vrad_sys']  = ['uniform',[-500.0, 500.0]]
 
@@ -233,10 +176,10 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
     indict['priors']['pc2'] = ['uniform',[-0.1,0.1]]
     indict['priors']['pc3'] = ['uniform',[-0.05,0.05]]
 
-    indict['priors']['specjitter'] = ['fixed',0.0]
-    # indict['priors']['specjitter'] = ['tnormal',[0.0,0.001,0.0,0.01]]
-    indict['priors']['photjitter'] = ['fixed',0.0]
-    # indict['priors']['photjitter'] = ['tnormal',[0.0,0.001,0.0,0.01]]
+    # indict['priors']['specjitter'] = ['fixed',0.0]
+    indict['priors']['specjitter'] = ['tnormal',[0.0,0.001,0.0,0.01]]
+    # indict['priors']['photjitter'] = ['fixed',0.0]
+    indict['priors']['photjitter'] = ['tnormal',[0.0,0.001,0.0,0.01]]
 
     print('------ Priors -----')
     for kk in indict['priors'].keys():    
@@ -244,7 +187,7 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
 
     # define SVI parameters
     indict['svi'] = ({
-        'steps':100,
+        'steps':kwargs.get('steps', 100),
         'opt_tol':1E-6,
         'start_tol':1E-2,
         'progress_bar':progressbar,
@@ -252,13 +195,17 @@ def runTP(dospec=True,dophot=True,outputname=None,progressbar=True,version='V0',
         })
 
     print('... Running TP')
+    # breakpoint()
     SVI = runSVI.sviTP(specNN=specNN,photNN=photNN,NNtype=NNtype,verbose=True)
     SVI.run(indict)
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--gaiaid','-i',dest='gaiaid',help='gaia id for star',default=None,type=int)
+    parser.add_argument('--specindex','-si',dest='specindex',help='index of spectrum for given star',default=0,type=int)
+    parser.add_argument('--steps',dest='steps',help='number of steps to run the optimizer',default=100,type=int)
     parser.add_argument('--output','-o',dest='outputname',help='output name for samples',default=None,type=str)
-    parser.add_argument('--version',help='analysis run version number',type=str,default='V0')
+    parser.add_argument('--version',help='analysis run version number',type=str,default='V000')
 
     parser.add_argument('--progressbar',   '-pb',  dest='progressbar', action='store_true')
     parser.add_argument('--noprogressbar', '-npb', dest='progressbar', action='store_false')
